@@ -1,0 +1,221 @@
+.login-title-container {
+    font-size: 2.3rem;
+    color: #676A6C;
+}
+
+.login-title-container h2 {
+    text-align: center;
+}
+
+.login-title-container span {
+    text-align: center;
+    color: #1876D1;
+}
+
+.login-description-container {
+    text-align: center;
+    font-size: 2rem;
+}
+
+
+/* */
+
+.container-login {
+    background-color: #f3f3f4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.screen {
+    /* background: linear-gradient(90deg, #5D54A4, #7C78B8); */
+    background: linear-gradient(90deg, rgb(183, 215, 244), rgb(125, 186, 242));
+    position: relative;
+    height: 55rem;
+    width: 33rem;
+    box-shadow: 0px 0px 24px rgb(110, 109, 109);
+    overflow: hidden
+}
+
+.screen__content {
+    z-index: 1;
+    position: relative;
+    height: 100%;
+}
+
+.screen__background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    -webkit-clip-path: inset(0 0 0 0);
+    clip-path: inset(0 0 0 0);
+}
+
+.screen__background__shape {
+    transform: rotate(45deg);
+    position: absolute;
+}
+
+.screen__background__shape1 {
+    height: 520px;
+    width: 520px;
+    background: #FFF;
+    top: -50px;
+    right: 120px;
+    border-radius: 0 72px 0 0;
+}
+
+.screen__background__shape2 {
+    height: 220px;
+    width: 220px;
+    background: rgb(70, 135, 196);
+    top: -172px;
+    right: 0;
+    border-radius: 32px;
+}
+
+.screen__background__shape3 {
+    height: 540px;
+    width: 190px;
+    background: linear-gradient(270deg, rgb(160, 201, 239), rgb(70, 135, 196));
+    top: -24px;
+    right: 0;
+    border-radius: 32px;
+}
+
+.screen__background__shape4 {
+    height: 400px;
+    width: 200px;
+    background: rgb(70, 135, 196);
+    top: 420px;
+    right: 50px;
+    border-radius: 60px;
+}
+
+.login {
+    width: 320px;
+    padding: 30px;
+    padding-top: 156px;
+}
+
+.login__field {
+    padding: 20px 0px;
+    position: relative;
+}
+
+.login__icon {
+    position: absolute;
+    top: 30px;
+    color: gray;
+}
+
+.login__input {
+    border: none;
+    border-bottom: 2px solid #D1D1D4;
+    background: none;
+    padding: 10px;
+    padding-left: 24px;
+    font-weight: 700;
+    width: 75%;
+    transition: .2s;
+    font-family: "Lato", sans-serif;
+    color: #676A6C;
+}
+
+.login__input:active,
+.login__input:focus,
+.login__input:hover {
+    outline: none;
+    border-bottom-color: #1876D1;
+}
+
+.login__submit {
+    background: #fff;
+    font-size: 14px;
+    margin-top: 30px;
+    padding: 16px 20px;
+    border-radius: 26px;
+    border: 1px solid #D4D3E8;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    width: 50%;
+    color: gray;
+    box-shadow: 0px 2px 2px gray;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.login__submit:active,
+.login__submit:focus,
+.login__submit:hover {
+    border-color: #1876D1;
+    outline: none;
+}
+
+.button__icon {
+    font-size: 30px;
+    margin-left: auto;
+    color: gray;
+}
+
+.login__submit:hover .button__icon {
+    color: #1876D1;
+}
+
+.logo_login {
+    position: absolute;
+    margin-top: 5rem;
+    margin-left: 1.5rem;
+    z-index: 1000;
+    width: 16rem;
+}
+
+.error-login {
+    color: white;
+    font-size: 1.3rem;
+    background-color: #f14b5c;
+    text-align: center;
+    padding: .5rem 0;
+    width: 80%;
+    margin: auto;
+    height: 4rem;
+    border-radius: .5rem;
+    text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+    .login-title-container {
+        height: 60rem;
+        width: 50rem;
+        text-align: center;
+        font-size: 2rem;
+    }
+    .login-title-container h2 {
+        color: #676A6C;
+    }
+    .login-title-container span {
+        color: #1876D1;
+    }
+    .login-description-container {
+        text-align: center;
+        font-size: 2rem;
+    }
+    .container-login {
+        background-color: #f3f3f4;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    .screen {
+        height: 60rem;
+        width: 35rem;
+    }
+}
