@@ -13,6 +13,11 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
+import { Link, useLocation } from "react-router-dom";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 
 
 
@@ -20,12 +25,14 @@ import './EmbarquesLayout.css'
 
 const drawerWidth = 270;
 const navItems = [
-    {label:"Asignaciones",path:"/asignaciones", icon:""},
-    {label:"Transito",path:"/transito",icon:""},
-    {label:"Regresos",path:"/regresos",icon:""},
-    {label:"Facts. en Transito",path:"/facts_transito",icon:""},
+    {label:"Tablero",path:"/embarques", icon:<LeaderboardIcon /> },
+    {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
+    {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
+    {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
+
   ]
 const EmbarquesLayout = () => {
+    const location = useLocation()
     return (
         <div className='contenedor-embarques'>
         <Box sx={{ display: 'flex' }}>
@@ -43,33 +50,22 @@ const EmbarquesLayout = () => {
           <Box sx={{ overflow: 'auto' }}>
             <List>
               {navItems.map((item) => (
-               
-                <ListItem key={item.path} disablePadding>
-                  <ListItemButton>
-                    <ListItemIcon>
-                      <InboxIcon /> 
-                    </ListItemIcon>
-                    <ListItemText primary={item.label} />
-                  </ListItemButton>
-                </ListItem>
+                <Link to={item.path} key={item.label}   className='link-modulos'> 
+                    <ListItem  disablePadding selected={location.pathname === item.path} >
+                      <ListItemButton>
+                        <ListItemIcon >
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={item.label}    />
+                      </ListItemButton>
+                    </ListItem>
+                </Link>
               ))}
             </List>
             <Divider />
-           {/*  <List>
-              {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                <ListItem key={text} disablePadding>
-                  <ListItemButton>
-                    <ListItemIcon>
-                      {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List> */}
           </Box>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Box component="main" sx={{ flexGrow: 1,paddingLeft:3, paddingBottom:2 }}>
         <Toolbar />
                 <Outlet />
         </Box>

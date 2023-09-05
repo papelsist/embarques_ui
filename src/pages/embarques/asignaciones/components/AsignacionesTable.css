@@ -1,0 +1,11 @@
+.contenedor-asignaciones-table {
+    width: 75vw;
+    height: 90vh;
+    margin-top: .5rem;
+}
+
+@media (min-width: 1290px) {
+    .contenedor-asignaciones-table {
+        width: 81vw;
+    }
+}

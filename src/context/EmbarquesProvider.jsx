@@ -3,7 +3,9 @@ import  { ContextEmbarques } from './ContextEmbarques';
 
 
 const EmbarquesProvider = ({children}) =>{
-    const contextIni = {}
+    const contextIni = {
+        sucursal:"Tacuba"
+    }
     return (
         <ContextEmbarques.Provider value={contextIni}>
             {children}

@@ -1,5 +1,5 @@
-.contenedor-embarques {
-    display: flex;
+.test-container {
     background-color: #E0E0E0;
     height: 100vh;
+    padding: 1rem;
 }

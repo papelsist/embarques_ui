@@ -51,7 +51,7 @@ export const MainBar = (props) => {
              <Link to={item.path} key={item.label}   className='link-modulos'> 
                  <ListItem key={item} disablePadding>
                     <ListItemButton>
-                      <Typography sx={{fontSize:"1rem",width:"100%"}}>{item.label}</Typography>
+                      <Typography sx={{width:"100%"}}>{item.label}</Typography>
                     </ListItemButton>
                 </ListItem>
               </Link> 

@@ -37,11 +37,11 @@ const BuscadorAutocompleteDebounce = ({setFound, apiUrl, searchField, label }) =
       <Autocomplete
           disablePortal
           getOptionLabel={(option) =>
-            typeof option === 'string' ? option : `${option.clave} - ${option.descripcion}`
+            typeof option === 'string' ? option : `${option.nombre}`
           }
           id="buscador_debounce"
           options={options}
-          sx={{ width: 200 }}
+          sx={{ width:300 }}
           renderInput={(params) => <TextField {...params} label={label} variant="standard"  fullWidth/>}
           onInputChange={(event, newInputValue) => {
             search(newInputValue)

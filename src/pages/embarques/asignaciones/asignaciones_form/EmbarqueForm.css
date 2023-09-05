@@ -1,0 +1,21 @@
+.embarque-form-container {
+    background-color: white;
+    padding: 1rem;
+    margin-top: .5rem;
+    height: 90%;
+    width: 60rem;
+}
+
+@media (min-width: 1290px) {
+    .embarque-form-container {
+        width: 85rem;
+    }
+}
+
+.create-embarque-form-container {
+    background-color: white;
+    padding: 1rem;
+    margin-top: .5rem;
+    height: 25rem;
+    width: 30rem;
+}

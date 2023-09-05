@@ -6,6 +6,9 @@ import { router } from "./Router.jsx"
 import './index.css'
 import EmbarquesProvider from './context/EmbarquesProvider.jsx'
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import 'dayjs/locale/es';
 
 
 
@@ -19,9 +22,11 @@ const theme = createTheme(themeOptions);
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}> 
-    <EmbarquesProvider>
-      <RouterProvider router={router}/>
-    </EmbarquesProvider>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+        <EmbarquesProvider>
+          <RouterProvider router={router}/>
+        </EmbarquesProvider>
+      </LocalizationProvider >
     </ThemeProvider > 
   </React.StrictMode>,
 )

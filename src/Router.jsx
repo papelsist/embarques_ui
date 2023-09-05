@@ -11,6 +11,10 @@ import Login from "./pages/auth/Login";
 import TablerosLayout from "./layout/tableros/TablerosLayout";
 import Tableros from "./pages/tableros/Tableros";
 import Transito from "./pages/tableros/transito/Transito";
+import Asignaciones from "./pages/embarques/asignaciones/Asignaciones";
+import EmbarqueForm from "./pages/embarques/asignaciones/asignaciones_form/EmbarqueForm";
+import Regresos from "./pages/embarques/regresos/Regresos";
+import Test from "./pages/test/Test";
 
 
 
@@ -31,6 +35,10 @@ export const router = createBrowserRouter([
           {
             path:"demo-map",
             element:<Mapa />
+        },
+        {
+          path:"test",
+          element:<Test />
         },
         /* {
           path:"/tableros",
@@ -61,13 +69,30 @@ export const router = createBrowserRouter([
           {
             index:true,
             element:<Embarques />
+          },
+          {
+            path:"asignaciones",
+            element:<Asignaciones />
+          },
+          {
+            path:"asignaciones/create/:id",
+            element:<EmbarqueForm />
+          },
+          {
+            path:"transito",
+            element:<Transito />
+          },
+          {
+            path:"regresos",
+            element:<Regresos />
           }
+
 
         ]
        }
       ]
     },
- {
+    {
       path:"/tableros",
       element:<MainLayout />,
       children:[
