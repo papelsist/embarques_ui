@@ -24,7 +24,6 @@ const BuscadorAutocompleteDebounce = ({setFound, apiUrl, searchField, label }) =
         const params = {
             [searchField]: input
         }
-        console.log(params)
          const datos = await axios({
             method: 'get',
             url: apiUrl,

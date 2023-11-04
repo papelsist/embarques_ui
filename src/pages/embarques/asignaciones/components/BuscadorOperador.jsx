@@ -1,12 +1,15 @@
-import React, {useState,useMemo } from 'react';
+import React, {useState,useMemo, useContext } from 'react';
 import axios from 'axios'
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { debounce } from '@mui/material/utils';
+import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 
 
 const BuscadorOperador = ({setFound, apiUrl, searchField, label }) => {
+
+    const {auth} = useContext(ContextEmbarques);
     const [inputValue, setInputValue] = useState('');
     const [options, setOptions] = useState([]);
     
@@ -26,7 +29,8 @@ const BuscadorOperador = ({setFound, apiUrl, searchField, label }) => {
          const datos = await axios({
             method: 'get',
             url: apiUrl,
-            params: params
+            params: params,
+            headers: { Authorization: `Bearer ${auth.access}` }
           });
         setOptions(datos.data)     
     }

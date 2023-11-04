@@ -1,0 +1,18 @@
+.contenedor-regresos-table {
+    width: 75vw;
+    height: 90vh;
+    margin-top: .5rem;
+}
+
+.regresos-header-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@media (min-width: 1290px) {
+    .contenedor-regresos-table {
+        width: 81vw;
+    }
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2'
 import BuscadorOperador from '../components/BuscadorOperador';
@@ -7,8 +7,10 @@ import { Box, Divider,TextField,Grid, Typography, Button } from '@mui/material';
 import { apiUrl } from '../../../../conf/axios_instance';
 
 import './EmbarqueForm.css'
+import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 const CreateEmbarqueForm = ({setOpenDialog, getData}) => {
+    const {auth,sucursal} = useContext(ContextEmbarques);
     const [operador, setOperador] = useState();
     const [comentario, setComentario] = useState();
 
@@ -22,16 +24,15 @@ const CreateEmbarqueForm = ({setOpenDialog, getData}) => {
         const data ={
             operador: operador.id,
             facturista: operador.facturista,
-            sucursal: 2,
+            sucursal: sucursal.id,
             comentario: comentario
         }
-        const resp = await axios.post(url,data)
+        const resp = await axios.post(url,data,{headers: { Authorization: `Bearer ${auth.access}` }})
         setOpenDialog(false)
         Swal.fire(`Se creo el Embarque No. ${resp.data.documento} para ${resp.data.operador.nombre}`)
         getData()
 
     }
-
     const urlChofer = `${apiUrl.url}embarques/search_operador`
     return (
         <div className='create-embarque-form-container '>
@@ -75,7 +76,7 @@ const CreateEmbarqueForm = ({setOpenDialog, getData}) => {
                 </Box>
                 <Box>
                 <Divider  sx={{mb:1}}/>
-                    <Button  sx={{mr:8, ml:5 }} onClick={handleSalvar}>Salvar</Button>
+                    <Button  sx={{mr:8, ml:5 }} onClick={handleSalvar} disabled={!operador} >Salvar</Button>
                     <Button onClick={()=>{setOpenDialog(false)}} >Salir</Button>
                 </Box>
             </Paper>

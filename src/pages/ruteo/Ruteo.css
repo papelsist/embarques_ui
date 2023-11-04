@@ -1,0 +1,28 @@
+.ruteo-container {
+    width: 75vw;
+    height: 40rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas: "rutas noasignados " "rutas outliers";
+    gap: .5rem;
+}
+
+.ruteo-rutas {
+    grid-area: rutas;
+}
+
+.ruteo-outliers {
+    grid-area: outliers;
+}
+
+.ruteo-no-asignados {
+    grid-area: noasignados;
+}
+
+@media (min-width: 1290px) {
+    .ruteo-container {
+        width: 81vw;
+        height: 49rem;
+    }
+}

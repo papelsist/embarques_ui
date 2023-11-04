@@ -1,5 +1,4 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
+import  React, {useContext,useState,memo} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -9,16 +8,19 @@ import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import HomeIcon from '@mui/icons-material/Home';
 import MenuIcon from '@mui/icons-material/Menu';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { mainDrawerItems } from '../../navItems';
 
 import Logo from '../../../images/logo3.png';
+import { ContextEmbarques } from '../../../context/ContextEmbarques';
 
 
 
@@ -29,10 +31,33 @@ const drawerWidth = 270;
 //const navItems = ['Home', 'About', 'Contact'];
 
  
-export const MainBar = (props) => {
+export const MainBar = () => {
 
-   const [openDrawer,setOpenDrawer] = React.useState(false)
+   const [openDrawer,setOpenDrawer] = useState(false)
    const location = useLocation()
+   const { auth,setAuth, sucursal } = useContext(ContextEmbarques)
+   const navigate = useNavigate()
+   /* Menu Icon */   
+  const ITEM_HEIGHT = 48;
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+   
+  };
+
+  const cerrarSesion = ()=>{
+    setAnchorEl(null);
+    setAuth({})
+    localStorage.removeItem('auth')
+    navigate("/login", {replace: true})
+
+  }
+  
+  /* Menu Icon */ 
 
     const hadleOpenDrawer = () =>{
         setOpenDrawer(!openDrawer)
@@ -70,34 +95,46 @@ export const MainBar = (props) => {
        <Link to={"/"}>
           <img src={Logo} alt="logo" width={"120"} height={"50"}/> 
        </Link>
-        {/* <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          {navItems.map((item) => (
-            <Button key={item} sx={{ color: '#fff' }}>
-              {item}
-            </Button>
-          ))}
-        </Box> */}
-       <Box  >
-         {/* <Link to={"/"}>
-            <IconButton
-                color="#FFF"
-                aria-label="open drawer"
-                edge="start"
-                sx={{ mr: 2, }}
-              >
-                <HomeIcon   sx={{color:"#FFF", fontSize:23}}/>
-              </IconButton>
-          </Link> */}
+       <Box>
+          <Typography ariant="h1" component="h2" fontSize={"1.5rem"}>{sucursal?.nombre}</Typography>
+       </Box>
+       <Box   >
           <IconButton
               color="#FFF"
               aria-label="open drawer"
               edge="start"
               onClick={hadleOpenDrawer}
-              sx={{ mr: 2, }}
+              sx={{ display: location.pathname == "/" ? "none":" inline",mr: 2, }}
             >
               <MenuIcon   sx={{color:"#FFF", fontSize:23}}/>
             </IconButton>
+            <IconButton
+              color="#FFF"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleClick}
+              sx={{ display: !auth== "/" ? "none":" inline",mr: 2, }}
+            >
+              <MoreVertIcon   sx={{color:"#FFF", fontSize:23}}/>
+            </IconButton>
+            <Menu
+              id="long-menu"
+              MenuListProps={{
+                'aria-labelledby': 'long-button',
+              }}
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+            >
+               <MenuItem onClick={handleClose}>
+                  <PersonIcon />{auth.username}
+                </MenuItem>
+                <MenuItem onClick={cerrarSesion}>
+                  <LogoutIcon />Cerrar Sesión
+                </MenuItem>
+            </Menu>
        </Box>
+      
       </Toolbar>
     </AppBar>
     <Box component="nav">

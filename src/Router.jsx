@@ -1,20 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
 import Home from "./pages/home/Home";
 import Mapa from "./components/map/Mapa";
 import MainLayout from "./layout/main/MainLayout"
-import EmbarquesLayout from "./layout/embarques/EmbarquesLayout";
-import Embarques from "./pages/embarques/Embarques";
-import Chofer from "./pages/chofer/Chofer";
-import MobileLayout from "./layout/mobile/MobileLayout";
 import Login from "./pages/auth/Login";
-import TablerosLayout from "./layout/tableros/TablerosLayout";
-import Tableros from "./pages/tableros/Tableros";
-import Transito from "./pages/tableros/transito/Transito";
-import Asignaciones from "./pages/embarques/asignaciones/Asignaciones";
-import EmbarqueForm from "./pages/embarques/asignaciones/asignaciones_form/EmbarqueForm";
-import Regresos from "./pages/embarques/regresos/Regresos";
 import Test from "./pages/test/Test";
+import ChoferRouter from "./routes/ChoferRouter";
+import EmbarquesRouter from "./routes/EmbarquesRouter";
+import TablerosRouter from "./routes/TablerosRouter";
+
 
 
 
@@ -40,87 +33,9 @@ export const router = createBrowserRouter([
           path:"test",
           element:<Test />
         },
-        /* {
-          path:"/tableros",
-          element: <TablerosLayout />,
-          children:[
-              {
-                index:true,
-                element:<Tableros />
-              },
-              {
-                path: "transito",
-                element:<Transito />
-              }
-
-            ]
-
-        } */
         ]
     },
-    {
-      path:"/embarques",
-      element:<MainLayout />,
-      children:[
-       {
-        path:"",
-        element: <EmbarquesLayout />,
-        children:[
-          {
-            index:true,
-            element:<Embarques />
-          },
-          {
-            path:"asignaciones",
-            element:<Asignaciones />
-          },
-          {
-            path:"asignaciones/create/:id",
-            element:<EmbarqueForm />
-          },
-          {
-            path:"transito",
-            element:<Transito />
-          },
-          {
-            path:"regresos",
-            element:<Regresos />
-          }
-
-
-        ]
-       }
-      ]
-    },
-    {
-      path:"/tableros",
-      element:<MainLayout />,
-      children:[
-       {
-        path:"",
-        element: <TablerosLayout />,
-        children:[
-          {
-            index:true,
-            element:<Tableros />
-          },
-          {
-            path: "transito",
-            element:<Transito />
-          }
-
-        ]
-       }
-      ]
-    }, 
-    {
-      path:"/chofer",
-      element:<MobileLayout/>,
-      children:[
-        {
-          path:"",
-          element: <Chofer />
-        }
-      ]
-    }
+    EmbarquesRouter,
+    TablerosRouter, 
+    ChoferRouter
 ])

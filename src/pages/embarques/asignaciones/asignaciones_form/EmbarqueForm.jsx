@@ -1,26 +1,68 @@
-import React, { useState,useMemo, useEffect } from 'react';
+import React, { useState,useMemo, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Divider,TextField,Grid, Typography, Button, Checkbox,FormControlLabel,Fab,Dialog,Paper  } from '@mui/material';
+import { Box, Divider,TextField,Grid, Typography, Button, Checkbox,FormControlLabel,Fab,Dialog,Paper,IconButton  } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { MaterialReactTable } from 'material-react-table';
 import { MRT_Localization_ES } from 'material-react-table/locales/es';
 import BuscadorEnvio from '../components/BuscadorEnvio';
 import { sortObjectsList,makeSublistByProperty,makeMasterDetailObject } from '../../../../utils/embarqueUtils';
 import  { apiUrl }  from '../../../../conf/axios_instance'
+import Swal from 'sweetalert2'
 
 import './EmbarqueForm.css'
+import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 const EmbarqueForm = () => {
 
+    const{auth} = useContext(ContextEmbarques)
     const navigate = useNavigate()
     const params = useParams()
     const [embarque, setEmbarque] = useState();
     const [openDialog, setOpenDialog] = useState(false);
     const [entregas, setEntregas] = useState([]);
-    const [foraneo, setForaneo] = useState(false)
+    const [cp, setCp] = useState(false)
 
-    const handleSalir =(e)=>{
+    const hadleBorrar = (row) =>{
+
+        Swal.fire({
+          title: `Esta seguro de borrar Clave:${row.clave} Cant:${row.enviar}?`,
+          text: "Esta accion no se puede revertir!",
+          
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Si, borrar',
+          cancelButtonText: 'Cancelar'
+        }).then(async(result) => {
+          if (result.isConfirmed) {
+            const resp = await borrarPatida(row)
+           
+            if(resp >= 0){
+              const entregasNew = entregas.filter((entrega)=>  entrega.id !== row.id)
+              setEntregas(entregasNew)
+              Swal.fire(
+                `Eliminado!`,
+                'El envío ha sido borrado!',
+              )
+            }else {
+              Swal.fire(
+                `No se pudo eliminar!`,
+                'Hubo un error!',
+              )
+            }
+          }
+        })
+    }
+
+    const borrarPatida = async(row)=>{
+      const url = `${apiUrl.url}embarques/eliminar_entrega_det`
+      const res = await axios.post(url, row ,{headers: { Authorization: `Bearer ${auth.access}` }})
+      return res.data.deleted
+    } 
+
+    const handleSalir =()=>{
         navigate("/embarques/asignaciones")
 
        
@@ -32,14 +74,15 @@ const EmbarqueForm = () => {
         const partidas = buildPartidas()
         const data = {
           embarqueId: embarque.id,
-          foraneo : foraneo,
+          cp : cp,
           comentario : embarque.comentario,
           operador: embarque.operador.id,
           partidas: partidas
         }
-        console.log(data)
-        const res = await axios.post(url,data)
-        console.log(res)
+        
+        const res = await axios.post(url,data, {headers: { Authorization: `Bearer ${auth.access}` }})
+       
+        navigate("/embarques/asignaciones")
     }
 
     const buildPartidas = () =>{
@@ -47,7 +90,7 @@ const EmbarqueForm = () => {
         const entregasSort = sortObjectsList([...entregas],'envioId')
         const entregasGroupedList = makeSublistByProperty(entregasSort,'envioId')
         entregasGroupedList.forEach((sublista) =>{
-          const master = makeMasterDetailObject(sublista,'envioId', 'documento', 'destinatario','fechaDocumento','sucursal','tipoDocumento','entidad')
+          const master = makeMasterDetailObject(sublista,'envioId', 'documento', 'destinatario','fechaDocumento','sucursal','tipoDocumento','entidad','entregaId')
           partidas.push(master)
         })
         return partidas
@@ -60,30 +103,54 @@ const EmbarqueForm = () => {
 
     const handleSaveCell = (cell, value) => {
     // Metodos para actualizar las columnas que se modifican en la tabla
-            entregas[cell.row.index][cell.column.id] = value;
-            setEntregas([...entregas]);    
+            let entregasTemp = entregas
+            if (cell.row.original.entregaDetId){
+              entregasTemp[cell.row.index]['saldo'] = Number(cell.row.original.saldo) + Number(cell.row.original.enviar) - Number(value)
+            }
+            
+            entregasTemp[cell.row.index][cell.column.id] = value;
+            setEntregas([...entregasTemp]);    
     };
     
     const getData = async () => {
     // Metodo para obtener el embarque al carga la vista
       const url = `${apiUrl.url}embarques/crear_asignacion/${params.id}`
-      const res =  await axios.get(url)
-      console.log(res.data)
+      const res =  await axios.get(url,{headers: { Authorization: `Bearer ${auth.access}` }})
       setEmbarque(res.data)
+      
+      setCp(res.data.cp)
       if(res.data?.partidas.length != 0){
-          console.log("El embarque tiene partidas... ")
           const partidasEmbarque = res.data.partidas
+          let entregasEmbarque = []
           for(let partida of partidasEmbarque){
-            console.log("***********")
-            console.log(partida)
+ 
             if(partida.detalles.length != 0){
                 const detalles = partida.detalles
-                for(let detalle of detalles){
-                    console.log("____________________")
-                    console.log(detalles)
+              for(let detalle of detalles){
+                  let entregaEmbarque = {}
+                  entregaEmbarque.entregaId = partida.id
+                  entregaEmbarque.documento = partida.documento
+                  entregaEmbarque.entidad = partida.entidad
+                  entregaEmbarque.destinatario = partida.destinatario
+                  entregaEmbarque.envioId = partida.envio
+                  entregaEmbarque.fechaDocumento = partida.fecha_documento
+                  entregaEmbarque.sucursal = partida.sucursal
+                  entregaEmbarque.tipoDocumento = partida.tipo_documento
+                  entregaEmbarque.entregaDetId = detalle.id
+                  entregaEmbarque.clave = detalle.clave
+                  entregaEmbarque.me_descripcion = detalle.descripcion
+                  entregaEmbarque.id = detalle.envio_det
+                  entregaEmbarque.enviar = detalle.cantidad
+                  entregaEmbarque.valor = detalle.valor
+                  entregaEmbarque.me_cantidad = detalle.cantidad_envio
+                  entregaEmbarque.saldoEnvio = detalle.saldo
+                  entregaEmbarque.enviado = detalle.enviado
+                  entregaEmbarque.saldo = detalle.saldo
+                  entregasEmbarque.push(entregaEmbarque)
                 }
             }
           }
+          setEntregas(entregasEmbarque)
           
       }
     }
@@ -162,7 +229,8 @@ const EmbarqueForm = () => {
           header: 'Saldo',
           accessorKey: 'saldo', 
             enableEditing: row => false,
-            Cell: ({ row }) => (row.original.saldo - row.original.enviar),
+            Cell: ({ row }) => (row.original.entregaDetId ? row.original.saldo : row.original.saldo - row.original.enviar)
+           ,
             size:80,
             muiTableBodyCellProps: {
               align: 'right'
@@ -196,28 +264,28 @@ const EmbarqueForm = () => {
                                 '& .MuiTextField-root': { ml: 1},
                             }}
                     >
-                        <Grid item xs={2}>
-                            <TextField  variant="standard" name = "documento" value={embarque && embarque.documento} disabled fullWidth/>
+                         <Grid item xs={2}>
+                             <TextField  variant="standard" name = "documento" value={embarque ? embarque.documento :""} disabled fullWidth/> 
                         </Grid>
                         <Grid item xs={2}>
-                            <TextField  variant="standard" name = "sucursal" value={embarque && embarque.sucursal} disabled fullWidth/>
+                            <TextField  variant="standard" name = "sucursal" value={embarque ? embarque.sucursal:""} disabled fullWidth/>
                         </Grid>
                         <Grid item xs={2}>
-                        <TextField  variant="standard" value={embarque && embarque.fecha} name="fecha"  disabled fullWidth />
+                        <TextField  variant="standard" value={embarque ? embarque.fecha : ""} name="fecha"  disabled fullWidth />
                         </Grid>
                         <Grid item xs={1}>
-                            <FormControlLabel control={<Checkbox onChange={(e)=>{setForaneo(e.target.checked)}}/>}  label="Foraneo" />
-                        </Grid>
+                            <FormControlLabel control={<Checkbox onChange={(e)=>{setCp(e.target.checked)}} checked={cp} name='cp'/>}  label="FORANEO" />
+                        </Grid> 
                     </Grid>
                     <Grid container columnSpacing={2}   sx={{ marginBottom:1,
                                 display: 'flex',
                                     '& .MuiTextField-root': { mr: 1},
                                 }}>
-                        <Grid item xs={5}>
-                            <TextField   name = "operador" variant="standard" value={embarque && embarque.operador.nombre} disabled fullWidth/>
+                       <Grid item xs={5}>
+                            <TextField   name = "operador" variant="standard" value={embarque ? embarque.operador.nombre : ""} disabled fullWidth/> 
                         </Grid>
                         <Grid item xs={7}>
-                                <TextField  variant="standard" name = "comentario" value={embarque && embarque.comentario}  disabled fullWidth />
+                               <TextField  variant="standard" name = "comentario" value={embarque && embarque.comentario  ? embarque.comentario : ""}  disabled fullWidth /> 
                         </Grid>     
                     </Grid>
                     <Divider />
@@ -245,7 +313,6 @@ const EmbarqueForm = () => {
                         cell
                       }) => ({
                         onBlur: event => {
-                            console.log(cell)
                             if(cell.column.id === 'enviar'){
                                 handleSaveCell(cell, event.target.value);
                             }
@@ -260,28 +327,43 @@ const EmbarqueForm = () => {
                         enableRowNumbers
                         rowNumberMode="original"
                     localization={MRT_Localization_ES}
-                    />            
+                    enableRowActions 
+                    positionActionsColumn="last"
+                    renderRowActions={({
+                      row
+                    }) => <div style={{
+                      display: 'flex',
+                      flexWrap: 'nowrap',
+                      gap: '0.5rem',
+                      color:'red'
+                    }}>
+                        <IconButton aria-label="delete" size="large" color="error"  onClick={()=>{hadleBorrar(row.original)}} >
+                            <DeleteForeverIcon  />
+                        </IconButton>
+                     
+                          </div>} 
+                    />             
                 </Box>
-                <Box
+               <Box
                 component={'div'}
                  sx={{height: '4rem'}}
                 >
                 <Divider sx={{mb:2}} />
-                    <Button  sx={{mr:8, ml:5 }} onClick={handleSalvar}>Salvar</Button>
+                    <Button  sx={{mr:8, ml:5 }} onClick={handleSalvar} disabled={! entregas.length > 0}>Salvar</Button>
                     <Button onClick={handleSalir}>Salir</Button>
-                </Box>
+                </Box> 
             </Paper>  
 
-            <Fab 
+           <Fab 
                 color="primary" aria-label="add"  
                 sx={{position: "fixed",bottom: (theme) => theme.spacing(7),right: (theme) => theme.spacing(10)}}
                 onClick={()=>{setOpenDialog(true)}}
             >
                 <AddIcon  sx={{fontSize:35}} />
-            </Fab>
+            </Fab> 
             <Dialog open={openDialog} onClose={()=>{setOpenDialog(false)}}   maxWidth={'md'}>
                <BuscadorEnvio setOpenDialog={setOpenDialog} agregarEntregas={agregarEntregas}  />
-            </Dialog>
+            </Dialog> 
         </div>
     );
 }

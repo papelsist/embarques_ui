@@ -1,6 +1,5 @@
 import React,{useRef} from 'react';
 import { Box, Toolbar } from '@mui/material';
-import Transito from './transito/Transito';
 import PendientesEnvio from './pendientes_envio/PendientesEnvio';
 import EnviosParciales from './envios_parciales/EnviosParciales';
 import Disponibles from './disponibles/Disponibles';
@@ -47,7 +46,6 @@ const Tableros = () => {
           className="mySwiper"
         >
           <SwiperSlide><PendientesEnvio /></SwiperSlide>
-          <SwiperSlide><Transito /></SwiperSlide>
           <SwiperSlide><EnviosParciales /></SwiperSlide>
           <SwiperSlide><Disponibles /></SwiperSlide>
           <div className="autoplay-progress" slot="container-end">

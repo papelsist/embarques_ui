@@ -4,6 +4,13 @@
     margin-top: .5rem;
 }
 
+.asignaciones-header-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 @media (min-width: 1290px) {
     .contenedor-asignaciones-table {
         width: 81vw;

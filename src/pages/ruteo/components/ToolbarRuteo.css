@@ -1,0 +1,13 @@
+.toolbar-ruteo {
+    width: 75vw;
+    height: 3rem;
+    background-color: white;
+    margin: .5rem 0;
+}
+
+@media (min-width: 1290px) {
+    .toolbar-ruteo {
+        width: 81vw;
+        margin: 1rem 0;
+    }
+}

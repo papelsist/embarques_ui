@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { useForm}  from '../../../../hooks/useForm';
 import { apiUrl } from '../../../../conf/axios_instance';
 import {Paper, Box,Grid,FormControl,TextField,Typography,Divider, InputLabel,Select,MenuItem,IconButton,LinearProgress,Button,
-FormControlLabel,Checkbox } from '@mui/material';
+FormControlLabel,Checkbox, useStepContext } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 
 import './BuscadorEnvio.css';
+import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 
 const initialParams = {
@@ -38,7 +39,8 @@ const columns = [
 ];
 
 const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
- 
+
+    const {auth,sucursal} = useContext(ContextEmbarques);
     const [loading, setLoading] = useState(false);
     const [envio, setEnvio] = useState(null);
     const [values, handleInputChange] = useForm(initialParams)
@@ -51,7 +53,7 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
         const url = `${apiUrl.url}embarques/search_envio`
         setEnvio(null)
         setLoading(true)
-        const datos = await axios.get(url, {params:values})
+        const datos = await axios.get(url, {params:{...values,sucursal:sucursal.nombre}, headers: { Authorization: `Bearer ${auth.access}` }})
         if(datos.data){
             setEnvio(datos.data)
         }
@@ -64,7 +66,6 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
 
     const handleAgregar = () =>{
             const entregas = buildEntregas()
-            console.log(entregas)
             agregarEntregas(entregas)
             setOpenDialog(false)
     }
@@ -73,6 +74,8 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
        let entregas = []
         selecteds. forEach((selected)=>{
             let entrega = {
+                entregaId: null,
+                entregaDetId:null,
                 envioId:envio.id,
                 entidad:values.tipo,
                 documento: envio.documento,
@@ -87,6 +90,7 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
             }
             if(total){
                 entrega.enviar = entrega.saldo
+                entrega.saldoEnvio = entrega.saldo
                 // entrega.saldo = 0     
             }
             entregas.push(entrega)
@@ -100,7 +104,7 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
           
     }
 
-    const rowDisabledCriteria = row => row.me_cantidad <= 0;
+    const rowDisabledCriteria = row => row.saldo <= 0;
 
     return (
         <div className='buscador-envio-container'>
@@ -184,20 +188,21 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
                             <Divider/>  
                         <Box component={"div"}>
                             <DataTable   
-                                dense
-                                fixedHeader
                                 columns={columns}
                                 data={envio.detalles}
                                 fixedHeaderScrollHeight="25rem"
+                                onSelectedRowsChange={handleSelectedRow}
+                                selectableRowsHighlight={true}
+                                selectableRowDisabled={rowDisabledCriteria}
+                                dense
+                                fixedHeader
                                 highlightOnHover
                                 pointerOnHover
                                 responsive
                                 striped
                                 selectableRows
-                                onSelectedRowsChange={handleSelectedRow}
-                                selectableRowsHighlight={true}
-                                selectableRowDisabled={rowDisabledCriteria}
-                            />
+                                headCell
+                            /> 
                         </Box>
                         <Box component={"div"}>
                         <Divider sx={{mb:2}} />

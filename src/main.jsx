@@ -20,7 +20,7 @@ const theme = createTheme(themeOptions);
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  <React.StrictMode> 
     <ThemeProvider theme={theme}> 
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
         <EmbarquesProvider>

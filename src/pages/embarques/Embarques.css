@@ -1,0 +1,50 @@
+.embarques_container {
+    margin: 0;
+    padding: 0;
+    width: 76vw;
+    height: 94%;
+}
+
+.header_container {
+    background-color: white;
+    border-radius: .4rem;
+    padding: .3rem;
+    height: 5%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.graph-main_container {
+    background-color: white;
+    margin: .4rem 0 0 0;
+    border-radius: .5rem;
+    padding: 0 1rem;
+    height: 40%;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.data_container {
+    padding: .4rem 0;
+    height: 55%;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.data-section_container {
+    height: 100%;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@media (min-width: 1290px) {
+    .embarques_container {
+        width: 82vw;
+    }
+}

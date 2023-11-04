@@ -18,6 +18,16 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
+import Collapse from '@mui/material/Collapse';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import EventIcon from '@mui/icons-material/Event';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import RecentActorsIcon from '@mui/icons-material/RecentActors';
+import ArticleIcon from '@mui/icons-material/Article';
+import RouteIcon from '@mui/icons-material/Route';
+
+
 
 
 
@@ -29,10 +39,29 @@ const navItems = [
     {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
     {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
+    {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<AssignmentReturnIcon /> },
+    {label:"Ruteo",path:"/embarques/ruteo",icon:<RouteIcon /> },
 
   ]
+  const catalogoItems = [
+    {label:"Transportes",path:"/embarques", icon:<LocalShippingIcon /> },
+    {label:"Operadores",path:"/embarques", icon:<RecentActorsIcon /> },
+  ]
+  const procesosItems = [
+    {label:"Actualizar F. Entrega",path:"/embarques", icon:<EventIcon /> },
+  ]
+
 const EmbarquesLayout = () => {
     const location = useLocation()
+    const [openCatalagos, setOpenCatalogos] = React.useState(false);
+    const [openProcesos, setOpenProcesos] = React.useState(false);
+    const handleClickCatalogos = () => {
+      setOpenCatalogos(!openCatalagos);
+    };
+    const handleClickProcesos = () => {
+      setOpenProcesos(!openProcesos);
+    };
+  
     return (
         <div className='contenedor-embarques'>
         <Box sx={{ display: 'flex' }}>
@@ -61,6 +90,49 @@ const EmbarquesLayout = () => {
                     </ListItem>
                 </Link>
               ))}
+   
+                <ListItem  onClick={handleClickCatalogos}  >
+                  <ListItemButton>
+                    <ListItemIcon >
+                      <ArticleIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={'Catalogos'}    />
+                    {openCatalagos ? <ExpandLess /> : <ExpandMore />}
+                  </ListItemButton>
+                </ListItem>
+                <Collapse in={openCatalagos} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      {catalogoItems.map((item)=>(
+                        <ListItemButton sx={{ pl: 4 }} key={item.label}>
+                        <ListItemIcon>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={item.label} />
+                      </ListItemButton>
+                      ))}
+                    </List>
+                  </Collapse>
+                  <ListItem  onClick={handleClickProcesos}  >
+                  <ListItemButton>
+                    <ListItemIcon >
+                      <EngineeringIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={'Procesos'}    />
+                    {openProcesos ? <ExpandLess /> : <ExpandMore />}
+                  </ListItemButton>
+                </ListItem>
+                <Collapse in={openProcesos} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      {procesosItems.map((item)=>(
+                        <ListItemButton sx={{ pl: 4 }} key={item.label}>
+                        <ListItemIcon>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={item.label} />
+                      </ListItemButton>
+                      ))}
+                    </List>
+                  </Collapse>
             </List>
             <Divider />
           </Box>

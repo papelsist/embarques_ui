@@ -4,6 +4,8 @@ import mkcert from 'vite-plugin-mkcert'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: { https: true },
-  plugins: [react(), mkcert()],
+  //server: { https: true },
+  //plugins: [react(), mkcert()],
+  plugins: [react()],
+  
 })

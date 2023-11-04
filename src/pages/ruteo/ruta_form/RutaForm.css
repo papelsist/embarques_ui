@@ -1,0 +1,58 @@
+.sweetalert-popup {
+    z-index: 100000;
+    /* Ajusta el valor del z-index según sea necesario */
+}
+
+.ruta-form-container {
+    background-color: #E0E0E0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 26vw 26vw auto;
+    grid-template-rows: 3rem auto 10rem;
+    grid-template-areas: "header header header " "mapa mapa embarque" "entregas entregas entregas";
+    /*  grid-template-rows: auto 14rem;
+    grid-template-areas: "mapa mapa embarque" "entregas entregas entregas"; */
+    gap: .5rem;
+    padding: .2rem;
+}
+
+.ruta-header {
+    grid-area: header;
+    background-color: white;
+    display: flex;
+}
+
+.titulo-ruta-header {
+    flex-grow: 1;
+    align-self: center;
+}
+
+.info-ruta-header {
+    flex-grow: 3;
+    align-self: center;
+    text-align: center;
+}
+
+.acciones-ruta-header {
+    flex-grow: 2;
+    align-self: center;
+    text-align: end;
+}
+
+.ruta-mapa {
+    grid-area: mapa;
+    background-color: white;
+    padding: 1rem 0 .5rem .2rem;
+}
+
+.ruta-entregas {
+    grid-area: embarque;
+    background-color: white;
+}
+
+.ruta-envios-det {
+    grid-area: entregas;
+    background-color: white;
+}

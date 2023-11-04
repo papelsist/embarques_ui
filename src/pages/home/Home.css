@@ -1,0 +1,33 @@
+.home-main-container {}
+
+.home-container {
+    padding: 0;
+    display: grid;
+    margin: .5rem;
+    height: 90vh;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 5rem auto 14rem;
+    grid-template-areas: "header header header header " "card1 card2 card3 card4" "footer footer footer footer";
+    gap: .5rem;
+}
+
+.card-container {
+    height: 100%;
+    width: 100%;
+}
+
+.card1-container {
+    grid-area: card1;
+}
+
+.card2-container {
+    grid-area: card2;
+}
+
+.card3-container {
+    grid-area: card3;
+}
+
+.card4-container {
+    grid-area: card4;
+}

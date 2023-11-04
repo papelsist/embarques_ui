@@ -1,4 +1,7 @@
 
+export const objectIsEmpty = (obj) => {
+   return Object.keys(obj).length
+}   
 
 export const sortObjectsList =(lista,propiedad) =>{
     const compareProperty = setCompareProPerty(propiedad)

@@ -1,24 +1,66 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useForm } from '../../hooks/useForm';
+import { apiUrl } from '../../conf/axios_instance';
+import { objectIsEmpty } from '../../utils/embarqueUtils';
+
+
 import "./Login.css"
 
 import Logo from "../../images/logo3.png"
+import { ContextEmbarques } from '../../context/ContextEmbarques';
 
 const Login = () => {
+
+    const navigate = useNavigate()
+
+    const {auth, setAuth, setSucursal} = useContext(ContextEmbarques)
+    
+
     const [formValues, handleInputChange] = useForm({
         username: '',
         password: ''
     })
     const {username, password} = formValues;
     const [loginError, setLoginError] = useState(false);
-    const onSubmit = async (e) =>{}
+    
+    const onSubmit = async (e) =>{
+        e.preventDefault()
+        const url = `${apiUrl.url}token/`
+        const url2 = `${apiUrl.url}get_user`
+        const datos = {
+            username: username,
+            password: password
+          }
+          try{
+            const resp = await axios.post(url,datos)
+            const resp2 = await axios.get(url2, {
+                params:{}, 
+                headers: { Authorization: `Bearer ${resp.data.access}` }
+            })
+            const auth = {...resp.data, ...resp2.data}
+            localStorage.setItem('auth',JSON.stringify(auth))
+            const {access, refresh,username,nombres,sucursal, user_permissions: permisos  } = auth
+            setAuth({access: access, refresh: refresh,username: username,nombres: nombres,permisos : permisos, sucursal:sucursal  })
+            setSucursal(sucursal)
+            if(resp.data.access){
+                navigate('/', {replace: true})
+            }
+          }catch(error){
+            console.log(error)
+            setLoginError(true)
+          }    
+    }
 
     
    
     return (
+        !objectIsEmpty(auth)
+        ?(
         <div className="container-login">
 
             <div className='login-title-container'>
@@ -63,7 +105,8 @@ const Login = () => {
             </div>
         </div>
         
-    </div>
+    </div>)
+    : <Navigate to="/" />
     );
 }
 
