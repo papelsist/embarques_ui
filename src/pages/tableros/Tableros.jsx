@@ -13,6 +13,7 @@ import 'swiper/css/navigation';
 
 
 import "./Tableros.css"
+import EnviosTransito from './envios_transito/EnviosTransito';
 
 
 
@@ -45,6 +46,7 @@ const Tableros = () => {
           onAutoplayTimeLeft={onAutoplayTimeLeft}
           className="mySwiper"
         >
+          <SwiperSlide><EnviosTransito /></SwiperSlide>
           <SwiperSlide><PendientesEnvio /></SwiperSlide>
           <SwiperSlide><EnviosParciales /></SwiperSlide>
           <SwiperSlide><Disponibles /></SwiperSlide>

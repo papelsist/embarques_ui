@@ -24,23 +24,21 @@ const Ruteo = () => {
     const {ruteo,setRuteo,rutas,setRutas,outliers,setOutliers,noAsignados,setNoAsignados} = useContext(ContextRuteo)
 
     const getRuteo = async() =>{
-        if(ruteo){
+        if(ruteo && Object.keys(ruteo).length > 0 ){
             console.log("Ruta ya generada limpie la ruta para volverla a generar")
         }else{
-            console.log("Generando  Ruta !!!")
-            console.log(new Date().toISOString().split('T')[0])
-            console.log(sucursal.nombre)
+            setLoading(true)
             const fecha = new Date().toISOString().split('T')[0]
             const url = `${apiUrl.url}ruteo/sugerencia_ruta_pendientes?fecha=${fecha}=&sucursal=${sucursal.nombre}`
             const resp = await axios.get(url,{
                 headers: { Authorization: `Bearer ${auth.access}` }
             } )
-            console.log(resp.data)
             const objetoRecibido = resp.data
             setRuteo(objetoRecibido)
             setRutas(objetoRecibido.rutas)
             setOutliers(objetoRecibido.outliers)
             setNoAsignados(objetoRecibido.no_asignados)
+            setLoading(false)
         }
     }
 
@@ -56,7 +54,7 @@ const Ruteo = () => {
     useEffect(() => {
        console.log("Ejecutando el effect de ruteo...")
         const objetoRecibido = location.state;
-        setLoading(false)
+        
         if (objetoRecibido) {
             console.log("Objeto Recibido")
             console.log(objetoRecibido)
@@ -64,8 +62,9 @@ const Ruteo = () => {
             setRutas(objetoRecibido.rutas)
             setOutliers(objetoRecibido.outliers)
             setNoAsignados(objetoRecibido.no_asignados)
-
+            setLoading(false)
         }
+        setLoading(false)
         
     }, []);
     return (

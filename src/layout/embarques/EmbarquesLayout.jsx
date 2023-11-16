@@ -36,10 +36,10 @@ import './EmbarquesLayout.css'
 const drawerWidth = 270;
 const navItems = [
     {label:"Tablero",path:"/embarques", icon:<LeaderboardIcon /> },
+    {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<AssignmentReturnIcon /> },
     {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
     {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
-    {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<AssignmentReturnIcon /> },
     {label:"Ruteo",path:"/embarques/ruteo",icon:<RouteIcon /> },
 
   ]
@@ -91,7 +91,7 @@ const EmbarquesLayout = () => {
                 </Link>
               ))}
    
-                <ListItem  onClick={handleClickCatalogos}  >
+                {/* <ListItem  onClick={handleClickCatalogos}  >
                   <ListItemButton>
                     <ListItemIcon >
                       <ArticleIcon />
@@ -111,28 +111,8 @@ const EmbarquesLayout = () => {
                       </ListItemButton>
                       ))}
                     </List>
-                  </Collapse>
-                  <ListItem  onClick={handleClickProcesos}  >
-                  <ListItemButton>
-                    <ListItemIcon >
-                      <EngineeringIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={'Procesos'}    />
-                    {openProcesos ? <ExpandLess /> : <ExpandMore />}
-                  </ListItemButton>
-                </ListItem>
-                <Collapse in={openProcesos} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding>
-                      {procesosItems.map((item)=>(
-                        <ListItemButton sx={{ pl: 4 }} key={item.label}>
-                        <ListItemIcon>
-                          {item.icon}
-                        </ListItemIcon>
-                        <ListItemText primary={item.label} />
-                      </ListItemButton>
-                      ))}
-                    </List>
-                  </Collapse>
+                  </Collapse> */}
+                  {/* brew uninstall dart */}
             </List>
             <Divider />
           </Box>

@@ -47,7 +47,7 @@ const CreateEmbarqueForm = ({setOpenDialog, getData}) => {
                             }}
                     >
                         <Grid item xs={6}>
-                            <TextField  variant="standard" value={"Tacuba"} disabled fullWidth/>
+                            <TextField  variant="standard" value={sucursal.nombre} disabled fullWidth/>
                         </Grid>
                         <Grid item xs={6}>
                         <TextField  variant="standard" value={new Date().toLocaleDateString()}  disabled fullWidth />

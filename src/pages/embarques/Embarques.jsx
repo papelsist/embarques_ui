@@ -39,7 +39,6 @@ const Embarques = () => {
             </header>
             <section className='graph-main_container'>
                 <GraficaEmbarques labels={labels} datos={datos}  label={'Dataset 1'} bc={'rgb(255, 99, 132)'} bck={'rgba(255, 99, 132, 0.5)'}/>
-          
                 <GraficaEmbarques labels={labels} datos={datos2}  label={'Dataset 2'} bc={'rgb(156, 39, 176)'} bck={'rgba(218, 126, 234, 0.5)'}/>
             </section>
             <main className="data_container">
@@ -49,7 +48,6 @@ const Embarques = () => {
                 <section className="data-section_container">
                     <PromediosEmbarques />
                     <PromediosEmbarques />
-
                 </section>
                 <section className="data-section_container">
                     <OperadoresEmbarques />
