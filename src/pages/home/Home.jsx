@@ -13,32 +13,44 @@ import Typography from '@mui/material/Typography';
  
 import "./Home.css"
 import EmbaquesImg from '../../assets/embarques.webp'
+import axios from 'axios';
+import { apiUrl } from '../../conf/axios_instance';
 
 const Home = () => {
-    const {auth} = useContext(ContextEmbarques)
+    const {auth, setAuth} = useContext(ContextEmbarques)
     const navigate = useNavigate()
+
     const validate_auth = async() =>{
-        if(objectIsEmpty(auth)){
+        console.log("Auth en home");
+        console.log(auth);
+      
+        if(objectIsEmpty(auth)){ 
+            console.log(auth.rol);
             try{
-                const url = `${apiUrl.url}embarques/pendientes_salida`
-                const resp = await axios.get(url,{
-                    params: {sucursal: sucursal.id},
+                const url = `${apiUrl.url}get_user`
+                const resp = await axios.get(url, {
+                    params:{}, 
                     headers: { Authorization: `Bearer ${auth.access}` }
-                } )
-                setDatos(resp.data)
+                })
             }catch(error){
-                if(error.response?.status === 401){
-                    navigate(`../../login`)
-                } 
+                if (error.response.status == 401){
+                    console.log('No esta autenticado')
+                    localStorage.removeItem('auth')
+                    setAuth({})
+                    navigate("/login", {replace: true})
+
+                }
             }
+            
         }else{
             console.log('No esta autenticado')
             navigate(`../../login`)
         } 
     }
-   /*  useEffect(() => {
-        
-    }, []); */
+   useEffect(() => {
+        console.log('Validando autenticacion en el home')
+        validate_auth()
+    }, []); 
     return (
         <div className='home-main-container'>
          <Toolbar />

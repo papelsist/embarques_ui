@@ -69,8 +69,8 @@ const Ruteo = () => {
     }, []);
     return (
             <>
-                <ToolbarRuteo />
-        
+                {/* <ToolbarRuteo /> */}
+            
                 <div className="ruteo-container">
                     <div className="ruteo-rutas">
                         <Rutas />
@@ -90,9 +90,6 @@ const Ruteo = () => {
                     <RouteIcon sx={{fontSize:35}}  /> 
                 </Fab>
             </>
-           
-
-       
     );
 }
 

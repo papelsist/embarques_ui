@@ -1,67 +1,69 @@
-.datePicker__container {
+.periodo__label:hover {
+    cursor: pointer;
+    color: #1876D1;
+}
+
+.periodo__container {
     position: relative;
-    padding: .5rem;
+    padding: 1rem;
     font-size: 1rem;
 }
 
-.datePicker__container:hover {
+.periodo__container:hover {
     cursor: pointer;
 }
 
-.datePicker__selector {
-    position: absolute;
-    z-index: 50000;
+.periodo__selector {
     height: 10rem;
-    width: 20rem;
-    padding: .5rem;
+    width: 30rem;
     background-color: white;
-    border: solid 1px lightgray;
-    border-radius: .5rem;
+    margin: 1rem;
 }
 
-.selector__header {
-    margin-bottom: .5rem;
+.periodo_selector__header {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
 }
 
-.selector__body {
+.periodo_selector__body {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
-.selector__actions {
+.periodo_selector__actions {
     margin-top: 1rem;
     display: flex;
     justify-content: space-around;
 }
 
-.datepicker__input {
+.periodo__input {
     cursor: pointer;
     box-sizing: border-box;
     border: none;
     outline: none;
     border-bottom: solid 1px lightgray;
-    font-size: .8rem;
+    font-size: 1.2rem;
     font-family: Roboto;
 }
 
-.selector__actions-button {
+.periodo_selector__actions-button {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     text-align: center;
     font-size: 1rem;
-    margin: .5rem auto;
-    width: 30%;
+    margin: .3rem auto;
+    width: 35%;
     padding: .5rem;
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     color: gray;
     border: 1px solid #1876D1;
 }
 
-.selector__actions-button:focus {
+.periodo_selector__actions-button:focus {
     outline: none;
     background: none;
 }
 
-.selector__actions-button:hover {
+.periodo_selector__actions-button:hover {
     outline: none;
     cursor: pointer;
     color: white;

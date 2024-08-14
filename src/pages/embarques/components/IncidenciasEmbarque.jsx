@@ -2,6 +2,7 @@ import { List, Paper, ListSubheader,IconButton } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import React from 'react';
+import GraficaKilosOperador from './GraficaKilosOperador';
 
 const IncidenciasEmbarque = () => {
 
@@ -19,6 +20,7 @@ const IncidenciasEmbarque = () => {
             subheader={<ListSubheader><span style={{fontSize:"1.2rem", fontWeight:"bold"}}>Incidencias</span> <IconButton onClick={handleRefresh}><RefreshIcon/></IconButton></ListSubheader>}
         >
         </List>
+    
         </Paper>
     );
 }

@@ -31,7 +31,9 @@ const Asignaciones = () => {
                 setDatos(resp.data)
             }catch(error){
                 if(error.response?.status === 401){
-                    navigate(`../../login`)
+                    localStorage.removeItem('auth')
+                    setAuth({})
+                    navigate("/login", {replace: true})
                 } 
             }
         }else{

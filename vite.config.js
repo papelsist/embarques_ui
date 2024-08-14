@@ -7,5 +7,6 @@ export default defineConfig({
   //server: { https: true },
   //plugins: [react(), mkcert()],
   plugins: [react()],
+  //base:'/logistica/' 
   
 })

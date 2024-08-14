@@ -52,9 +52,9 @@ return (
                 > 
                         {rutas && rutas.map((ruta)=>(
                             <div key={ruta.embarque.id}>
-                            <ListItem alignItems="flex-start">
+                            <ListItem alignItems="flex-start"  onClick={()=>{showRuta(ruta)}}>
                                 <ListItemAvatar>
-                                <IconButton onClick={()=>{showRuta(ruta)}} >
+                                <IconButton >
                                     <LocalShippingIcon />
                                 </IconButton>
                                 </ListItemAvatar>

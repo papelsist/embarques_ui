@@ -1,7 +1,7 @@
-import React,{useContext, useMemo} from 'react';
+import React,{useContext, useMemo,useState} from 'react';
 import axios from 'axios';
 import {apiUrl} from '../../../../conf/axios_instance';
-import { Box, Button,IconButton,Tooltip} from '@mui/material';
+import { Box, Button,IconButton,Tooltip,Dialog} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { MaterialReactTable } from 'material-react-table';
 import { MRT_Localization_ES } from 'material-react-table/locales/es';
@@ -9,15 +9,20 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import PrintIcon from '@mui/icons-material/Print';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import RouteIcon from '@mui/icons-material/Route';
 import Swal from 'sweetalert2'
-
-
-import "./AsignacionesTable.css"
 import { ContextEmbarques } from '../../../../context/ContextEmbarques';
+import RutaEmbarqueForm from './ruta_embarque_form/RutaEmbarqueForm';
+import "./AsignacionesTable.css"
+
 
 const AsignacionesTable = ({datos, getData}) => {
+
     const {auth} = useContext(ContextEmbarques);
     const navigate = useNavigate()
+    const [showRuta, setShowRuta] = useState(false)
+    const [ruta,setRuta] = useState({})
+
     const handleClickCell = (row) => {
         navigate(`create/${row.id}`)
     }
@@ -92,6 +97,23 @@ const AsignacionesTable = ({datos, getData}) => {
           })
     }
 
+    const verRuta = async (row) =>{
+        const url = `${apiUrl.url}embarques/ruta_embarque/${row.id}`
+        const res = await axios.get(url,{params:{embarqueId:row.id},
+            headers: { Authorization: `Bearer ${auth.access}` }})
+
+        const ruta_list = []
+        console.log(res.data)
+        for (let entrega of res.data.partidas) {
+            ruta_list.push(entrega.envio)
+        }
+        setRuta(ruta_list)
+        setShowRuta(true)
+    }
+
+
+
+
     const columns=useMemo(()=>[
         { 
             accessorKey: 'documento', 
@@ -145,8 +167,7 @@ const AsignacionesTable = ({datos, getData}) => {
                                 <RefreshIcon />
                             </IconButton>
                             </Tooltip>
-                        </div>
-                        
+                        </div>  
                     )} 
                     enableRowActions 
                     positionActionsColumn="last"
@@ -171,14 +192,32 @@ const AsignacionesTable = ({datos, getData}) => {
                             <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{ imprimirAsignacion(row.original)}} >
                                 <PrintIcon />
                             </IconButton>
+                            <IconButton aria-label="print_route" size="small" color="success"  onClick={()=>{verRuta(row.original)}}  >
+                            <RouteIcon /> 
+                            </IconButton>
                         </>
                         
                             
                         }
-                        
-                       
                         </div>} 
                     />   
+
+            <Dialog 
+                open={showRuta} 
+                onClose={()=>{setShowRuta(false)}}
+                PaperProps={{
+                    sx: {
+                      width: "100%",
+                      maxWidth: "80rem",
+                      height:"80%" ,
+                      maxHeight:"70rem"
+                    },
+                  }}
+            >
+                <Box>
+                   <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} />
+                </Box>            
+            </Dialog>
 
         </div >
     );

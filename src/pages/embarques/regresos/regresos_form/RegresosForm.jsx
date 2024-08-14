@@ -131,7 +131,7 @@ const RegresosForm = () => {
                         <ListItem component="div" disablePadding key={entrega.entregaId}>
                         <ListItemButton onClick={()=>{seleccionarEntrega(entrega)}}>
                             <ListItemText primary={`${entrega.destinatario}`} />
-                            ({entrega.recepcion_latitud} , {entrega.recepcion_longitud})
+                            
                         </ListItemButton>
                     </ListItem>
                     ))}
@@ -149,7 +149,7 @@ const RegresosForm = () => {
                         <ListItem component="div" disablePadding key={detalle.entregaDetId}>
                           <ListItemButton >
                                 <ListItemText primary={`${detalle.clave} - ${detalle.me_descripcion}`} />
-                                {`${detalle.me_cantidad} - ${detalle.me_valor}`}
+                                {`${detalle.me_cantidad}`}
                             </ListItemButton>
                         </ListItem>
                     ))

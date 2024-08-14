@@ -22,9 +22,6 @@ const sucursales = [
 ]
 
 
-
-
-
 const EmbarquesProvider = ({children}) =>{
 
     let authObj = {}
@@ -32,9 +29,18 @@ const EmbarquesProvider = ({children}) =>{
     const authStorage = JSON.parse(localStorage.getItem('auth'))
 
     if(authStorage){
-        const {access, refresh,username,nombres,sucursal: authSucursal, user_permissions: permisos  } = authStorage
-        authObj ={access: access, refresh: refresh,username: username,nombres: nombres,permisos : permisos, sucursal: authSucursal  }     
+        const {access, refresh,username,nombres,sucursal: authSucursal, user_permissions: permisos,groups: grupos  } = authStorage
+        console.log(grupos);
+       
+        let controlador = grupos.filter((grupo)=> grupo.name == 'controladores').length > 0
+        let rol = null
+        if (controlador) {
+            rol = 'controlador'
+        }
+       
+        authObj ={access: access, refresh: refresh,username: username,nombres: nombres,permisos : permisos, sucursal: authSucursal, grupos: grupos,rol: rol}     
         sucursalObj = authSucursal
+      
     }
     
     const [periodo, setPeriodo] = useState(periodoInicial)

@@ -76,3 +76,24 @@ export const tiempoEntreStr = (fechaIni, fechaFin)=>{
     }
    
 }
+
+export const changeDate = (dateStr) =>{
+   const newDate=  new Date(dateStr.substring(0, 10).replace(/-/g, '\/'))
+   return newDate
+}
+
+
+export const changeDateStr = (dateStr) =>{
+    /**
+     * Cambia el formato de la fecha de yyyy-mm-dd a dd-mm-yyyy
+     */
+    if (dateStr){
+        const partesFecha = dateStr.split("-")
+        const newDate = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`)
+        return newDate.toLocaleDateString()
+    }else{
+        return ""
+    }
+   
+
+ }

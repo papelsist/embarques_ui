@@ -63,9 +63,7 @@ const EmbarqueForm = () => {
     } 
 
     const handleSalir =()=>{
-        navigate("/embarques/asignaciones")
-
-       
+        navigate("/embarques/asignaciones")    
     }   
 
     const handleSalvar= async(e)=>{
@@ -79,9 +77,8 @@ const EmbarqueForm = () => {
           operador: embarque.operador.id,
           partidas: partidas
         }
-        
-        const res = await axios.post(url,data, {headers: { Authorization: `Bearer ${auth.access}` }})
-       
+        console.log(data)
+        const res = await axios.post(url,data, {headers: { Authorization: `Bearer ${auth.access}` }})  
         navigate("/embarques/asignaciones")
     }
 
@@ -316,7 +313,6 @@ const EmbarqueForm = () => {
                             if(cell.column.id === 'enviar'){
                                 handleSaveCell(cell, event.target.value);
                             }
-                         
                         }
                       })}  
                       muiTableContainerProps={{ sx: { maxHeight: 600 , minHeight: 500 } }}

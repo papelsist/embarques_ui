@@ -1,7 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
-import Swal from 'sweetalert2'
 import { MaterialReactTable } from 'material-react-table';
 import { MRT_Localization_ES } from 'material-react-table/locales/es';
 import { Box, Button,IconButton,Tooltip} from '@mui/material';
@@ -9,6 +8,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import PrintIcon from '@mui/icons-material/Print';
 import { apiUrl } from '../../../../conf/axios_instance';
 import { tiempoDesdeStr, tiempoEntreStr } from '../../../../utils/dateUtils';
+import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 
 import "./RegresosTable.css"
@@ -20,10 +20,27 @@ import PeriodoLabel from '../../../../components/periodo_date_picker/PeriodoLabe
 const RegresosTable = ({datos, getData}) => {
 
     const navigate = useNavigate()
+    const {auth} = useContext(ContextEmbarques);
 
 
     const handleClickCell = (row) =>{
         navigate(`regresos_view/${row.id}`)
+    }
+
+    const imprimirRegreso = async(row) =>{
+        const url = `${apiUrl.url}embarques/reporte_asignacion_embarque`
+        const data = {embarqueId: row.id}
+        const response = await axios.get(url,{params:data,
+            headers: { Authorization: `Bearer ${auth.access}` },
+            method: 'GET',
+            responseType: 'blob' //Force to receive data in a Blob Format
+            
+        })
+        const file = new Blob(
+            [response.data], 
+            {type: 'application/pdf'});
+        const fileURL = URL.createObjectURL(file);
+        window.open(fileURL);
     }
 
 
@@ -112,7 +129,7 @@ const RegresosTable = ({datos, getData}) => {
                     {row.original.partidas.length >0 && 
                     <>
                        <Tooltip title="Imprimir">
-                        <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{ }} >
+                        <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{  imprimirRegreso(row.original)}} >
                                 <PrintIcon />
                             </IconButton>
                        </Tooltip>

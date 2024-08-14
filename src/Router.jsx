@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter,createHashRouter } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Mapa from "./components/map/Mapa";
 import MainLayout from "./layout/main/MainLayout"
@@ -12,7 +12,7 @@ import TablerosRouter from "./routes/TablerosRouter";
 
 
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
     {
       path:"/login",
       element:<Login />

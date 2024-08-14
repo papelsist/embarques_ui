@@ -128,7 +128,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
             Cell: ({ row }) => {
 
                 const instruccion = row.original.instruccion;
-                const direccion =  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior && ""} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
+                const direccion =  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
                 return   direccion;
             },
             size:300,
@@ -149,7 +149,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
     return (
         <div className='contenedor-pendientes-table '>
                         {/* */}
-                        <MaterialReactTable
+            <MaterialReactTable
                 columns={columns}
                 data = {datos}
                 enableRowSelection
@@ -194,6 +194,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
                     
                 )} 
                 enableRowActions 
+                enableColumnResizing
                 positionActionsColumn="last"
                 renderRowActions={({
                     row

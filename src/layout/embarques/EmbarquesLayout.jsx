@@ -26,6 +26,7 @@ import EngineeringIcon from '@mui/icons-material/Engineering';
 import RecentActorsIcon from '@mui/icons-material/RecentActors';
 import ArticleIcon from '@mui/icons-material/Article';
 import RouteIcon from '@mui/icons-material/Route';
+import BusAlertIcon from '@mui/icons-material/BusAlert';
 
 
 
@@ -41,6 +42,7 @@ const navItems = [
     {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
     {label:"Ruteo",path:"/embarques/ruteo",icon:<RouteIcon /> },
+    {label:"Incidencias",path:"/embarques/incidencias",icon:<BusAlertIcon /> },
 
   ]
   const catalogoItems = [

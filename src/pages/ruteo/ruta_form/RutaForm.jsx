@@ -32,6 +32,7 @@ import "./RutaForm.css"
 
 
 const RutaForm = ({ruta,setShowDialog}) => {
+    
     const {sucursales,auth,setLoading} = useContext(ContextEmbarques)
     const {rutas, setRutas} = useContext(ContextRuteo)
     const [center, setCenter] = useState({latitud: 19.410050,longitud: -99.099976 })
@@ -118,6 +119,9 @@ const RutaForm = ({ruta,setShowDialog}) => {
     }
 
     useEffect(() => {
+        console.log("************")
+        console.log(ruta)
+        console.log("************")
         setDestinos(ruta.destinos)
         buildPuntos()
   

@@ -10,6 +10,7 @@ import RegresosForm from "../pages/embarques/regresos/regresos_form/RegresosForm
 import EnviosPendientes from "../pages/embarques/envios_pendientes/EnviosPendientes";
 import Ruteo from "../pages/ruteo/Ruteo";
 import RuteoProvider from "../context/RuteoProvider";
+import Incidencias from "../pages/incidencias/Incidencias";
 
 
 const EmbarquesRouter =  {
@@ -55,6 +56,10 @@ const EmbarquesRouter =  {
         {
           path:"ruteo",
           element:<RuteoProvider><Ruteo/></RuteoProvider>
+        },
+        {
+          path:"incidencias",
+          element:<RuteoProvider><Incidencias/></RuteoProvider>
         },
       ]
      }

@@ -18,7 +18,7 @@
     "@mui/x-date-pickers": "^6.12.0",
     "@sandstreamdev/react-swipeable-list": "^1.0.2",
     "axios": "^1.4.0",
-    "chart.js": "^4.4.0",
+    "chart.js": "^4.4.2",
     "dayjs": "^1.11.9",
     "ka-table": "^8.2.2",
     "leaflet": "^1.9.4",
