@@ -11,6 +11,7 @@ import EnviosPendientes from "../pages/embarques/envios_pendientes/EnviosPendien
 import Ruteo from "../pages/ruteo/Ruteo";
 import RuteoProvider from "../context/RuteoProvider";
 import Incidencias from "../pages/incidencias/Incidencias";
+import EnviosParciales from "../pages/embarques/envios_parciales/EnviosParciales";
 
 
 const EmbarquesRouter =  {
@@ -60,6 +61,10 @@ const EmbarquesRouter =  {
         {
           path:"incidencias",
           element:<RuteoProvider><Incidencias/></RuteoProvider>
+        },
+        {
+          path:"envios_parciales",
+          element:<RuteoProvider><EnviosParciales /></RuteoProvider>
         },
       ]
      }

@@ -30,7 +30,7 @@ const EmbarquesProvider = ({children}) =>{
 
     if(authStorage){
         const {access, refresh,username,nombres,sucursal: authSucursal, user_permissions: permisos,groups: grupos  } = authStorage
-        console.log(grupos);
+        //console.log(grupos);
        
         let controlador = grupos.filter((grupo)=> grupo.name == 'controladores').length > 0
         let rol = null

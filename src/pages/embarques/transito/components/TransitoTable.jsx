@@ -22,7 +22,8 @@ const TransitoTable = ({datos, getData}) => {
     const navigate = useNavigate()
 
     const handleClickCell = (row) =>{
-        navigate(`entregas/${row.id}`)
+       navigate(`entregas/${row.id}`)
+       
     }
 
     const borrarEmbarque =async (row) =>{

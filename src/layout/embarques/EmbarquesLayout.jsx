@@ -38,6 +38,7 @@ const drawerWidth = 270;
 const navItems = [
     {label:"Tablero",path:"/embarques", icon:<LeaderboardIcon /> },
     {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<AssignmentReturnIcon /> },
+    {label:"EnviosParciales",path:"/embarques/envios_parciales",icon:<AssignmentReturnIcon /> },
     {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
     {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },

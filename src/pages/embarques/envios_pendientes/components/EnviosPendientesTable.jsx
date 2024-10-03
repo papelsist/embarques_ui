@@ -173,23 +173,23 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
                             Envios Pendientes
                         </Box>
                          <PeriodoLabel getData={refrescar}/>
-                        <>
-                        <Tooltip title="Refrescar">
-                        <IconButton onClick={refrescar}>
-                            <RefreshIcon />
-                        </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Asignar">
-                        <IconButton onClick={mostrarDialog}>
-                            <LocalShippingIcon />
-                        </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Rutear">
-                        <IconButton onClick={crearRuta}>
-                            <PublicIcon />
-                        </IconButton>
-                        </Tooltip>
-                        </>
+                        <Box>
+                            <Tooltip title="Refrescar">
+                                <IconButton onClick={refrescar}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Asignar">
+                                <IconButton onClick={mostrarDialog}>
+                                    <LocalShippingIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Rutear">
+                                <IconButton onClick={crearRuta}>
+                                    <PublicIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
                     </div>
                     
                 )} 

@@ -17,7 +17,7 @@ const axiosInstance = axios.create({
 
 
   export const apiUrl = {
-    url: "http://10.10.1.85:8000/api/",
+    url: "http://10.10.1.85:9002/api/",
     url2: "http://10.10.1.85:8000/",
   }
 

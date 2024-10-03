@@ -65,17 +65,17 @@ const EntregasForm = () => {
     }
 
     const actualizarArribo= (row)=>{
-        const found = entregas.find((item)=> item.entregaId === row.entregaId)
+        /* const found = entregas.find((item)=> item.entregaId === row.entregaId)
         found.arribo = new Date().toISOString().replace("Z","")
         let entregasTemp = entregas.filter((item)=> item.entregaId != found.entregaId)
         entregasTemp = [...entregasTemp,found]
         entregasTemp = sortObjectsList(entregasTemp,'entregaId')
-        setEntregas(entregasTemp)
+        setEntregas(entregasTemp) */
    
     }
 
     const actualizarRecepcion= (row)=>{
-        if(row.arribo){
+       /*  if(row.arribo){
             const found = entregas.find((item)=> item.entregaId === row.entregaId)
             found.recepcion = new Date().toISOString().replace("Z","")
             let entregasTemp = entregas.filter((item)=> item.entregaId != found.entregaId)
@@ -90,7 +90,7 @@ const EntregasForm = () => {
                     icon: 'warning',
                 }
               )
-        }
+        } */
         
     }
 
