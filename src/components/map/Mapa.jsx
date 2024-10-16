@@ -29,7 +29,7 @@ const Mapa = ({puntos,center}) => {
 
   
     return (
-      <Box>
+
           <div style={{width:"100%", height:"100%", margin:"0", padding:"0"}}>
             {
                 <MapContainer center={[center.latitud, center.longitud]} zoom={12} scrollWheelZoom={false}>
@@ -49,7 +49,6 @@ const Mapa = ({puntos,center}) => {
             }
           </div>
 
-      </Box>
         
     );
 }

@@ -81,7 +81,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
           }).then(async(result)=>{
                 if(result.isConfirmed){  
                    setLoading(true)
-                    const url = `${apiUrl.url}embarques/asignar_evios_pendientes`
+                    const url = `${apiUrl.url}embarques/asignar_envios_pendientes`
                     const data ={
                         embarque_id: transporte.id,
                         envios: Object.keys(rowSelection)
@@ -126,10 +126,24 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
             accessorKey: 'instruccion.direccion_codigo_postal',
             header: 'Direccion',
             Cell: ({ row }) => {
-
-                const instruccion = row.original.instruccion;
-                const direccion =  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
-                return   direccion;
+                
+                let direccion = ''
+                let instruccion = row.original.instruccion;
+                if (row.original.instruccion.sx_transporte){
+                    instruccion = row.original.instruccion.sx_transporte
+                    direccion = `${row.original.instruccion.sx_transporte.nombre} - `
+                }
+                direccion +=  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
+                return   <Box
+                component="span"
+                sx={(theme) => ({
+                  color:
+                  row.original.instruccion.sx_transporte
+                      && theme.palette.error.dark,
+                })}
+              >
+                {direccion}
+              </Box>;
             },
             size:300,
         },
@@ -152,6 +166,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
             <MaterialReactTable
                 columns={columns}
                 data = {datos}
+                positionToolbarAlertBanner="none"
                 enableRowSelection
                 onRowSelectionChange={setRowSelection}
                 state={{ rowSelection }}

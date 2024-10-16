@@ -99,15 +99,6 @@ export const MainBar = () => {
           <Typography ariant="h1" component="h2" fontSize={"1.5rem"}>{sucursal?.nombre}</Typography>
        </Box>
        <Box   >
-          <IconButton
-              color="#FFF"
-              aria-label="open drawer"
-              edge="start"
-              onClick={hadleOpenDrawer}
-              sx={{ display: location.pathname == "/" ? "none":" inline",mr: 2, }}
-            >
-              <MenuIcon   sx={{color:"#FFF", fontSize:23}}/>
-            </IconButton>
             <IconButton
               color="#FFF"
               aria-label="open drawer"
@@ -133,14 +124,24 @@ export const MainBar = () => {
                   <LogoutIcon />Cerrar Sesión
                 </MenuItem>
             </Menu>
+            <IconButton
+              color="#FFF"
+              aria-label="open drawer"
+              edge="start"
+              onClick={hadleOpenDrawer}
+              sx={{ display: location.pathname == "/" ? "none":" inline",mr: 2, }}
+            >
+              <MenuIcon   sx={{color:"#FFF", fontSize:23}}/>
+            </IconButton>
        </Box>
       
       </Toolbar>
     </AppBar>
     <Box component="nav">
       <Drawer
+        anchor='right'
         open={openDrawer}
-      onClose={hadleOpenDrawer} 
+        onClose={hadleOpenDrawer} 
         sx={{
           '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth,  zIndex: (theme) => theme.zIndex.appBar + 5  },
         }}

@@ -1,0 +1,86 @@
+.locallizacion-container {
+    box-sizing: border-box;
+    display: flex;
+    height: 93vh;
+    width: 100%;
+    background-color: #EDEFF7;
+    flex-direction: column;
+}
+
+.localizacion-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    height: 8%;
+    background-color: #fff;
+    border: 1px solid #EDEFF7;
+}
+
+.localizacion-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 5%;
+    background-color: #fff;
+    border: 1px solid #EDEFF7;
+}
+
+.localizacion-panel {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    border: 1px solid #EDEFF7;
+    padding: .5rem 0;
+    overflow-y: auto;
+}
+
+.main-panel {
+    height: 100%;
+    width: 20%;
+    margin: 0;
+}
+
+.controles-panel {
+    height: calc(50% - .5rem);
+    width: 100%;
+    border: 1px solid #EDEFF7;
+    background-color: #fff;
+    margin-bottom: .5rem;
+}
+
+.mapa-envio-panel {
+    height: 50%;
+    width: 100%;
+    border: 1px solid #EDEFF7;
+    background-color: #fff;
+}
+
+.mapa-panel {
+    height: 100%;
+    width: 60%;
+    border: 1px solid #EDEFF7;
+    background-color: #fff;
+    margin: 0 0;
+}
+
+.info-panel {
+    height: 100%;
+    width: 20%;
+}
+
+.info-embarques-transito {
+    height: 100%;
+    width: 100%;
+    border: 1px solid #EDEFF7;
+    background-color: #fff;
+    margin-bottom: .5rem;
+}
+
+.info-embarque {
+    height: 50%;
+    width: 100%;
+    border: 1px solid #EDEFF7;
+    background-color: #fff;
+}

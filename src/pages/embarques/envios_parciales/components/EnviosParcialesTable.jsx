@@ -12,6 +12,7 @@ import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 import axios from 'axios';
 import { apiUrl } from '../../../../conf/axios_instance';
 import Swal from 'sweetalert2'
+import AsignacionParcialForm from './AsignacionParcialForm';
 
 const EnviosParcialesTable = ({datos, getData,setDatos}) => {
     const navigate = useNavigate()
@@ -24,6 +25,11 @@ const EnviosParcialesTable = ({datos, getData,setDatos}) => {
     const refrescar = ()=>{
         setDatos([])
         getData()
+    }
+
+    const onCloseDialog = ()=>{
+        setShowDialog(false)
+        setRowSelection({})
     }
 
     const crearRuta = async ()=>{
@@ -50,17 +56,11 @@ const EnviosParcialesTable = ({datos, getData,setDatos}) => {
       
 }
 
-const mostrarDialog =()=>{
-    /* const rowSelection = tableInstanceRef.current.getState().rowSelection;
-    const envios_ids = Object.keys(rowSelection).join(",")
-    console.log(Object.keys(rowSelection))
-    if(envios_ids){
-        setShowDialog(true)
-        console.log(envios_ids)
-    }  */ 
-}
 
-const asginar = (transporte) =>{
+
+const asignar = (transporte) =>{
+    const rowSelection = tableInstanceRef.current.getState().rowSelection;
+    console.log(rowSelection);
     //setShowDialog(false)
    /*  const rowSelection = tableInstanceRef.current.getState().rowSelection;
     console.log(Object.keys(rowSelection))
@@ -88,6 +88,21 @@ const asginar = (transporte) =>{
       })  */  
 }
 
+const mostrarDialog =()=>{
+    const rowSelection = tableInstanceRef.current.getState().rowSelection;
+    setRowSelection(rowSelection)
+    if (Object.keys(rowSelection).length !== 0)
+        setShowDialog(true)
+
+    /* 
+    const envios_ids = Object.keys(rowSelection).join(",")
+    console.log(Object.keys(rowSelection))
+    if(envios_ids){
+        setShowDialog(true)
+        console.log(envios_ids)
+    }
+    */ 
+}
 
 
 const columns=useMemo(()=>[
@@ -121,9 +136,24 @@ const columns=useMemo(()=>[
         header: 'Direccion',
         Cell: ({ row }) => {
 
-            const instruccion = row.original.instruccion;
-            const direccion =  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
-            return   direccion;
+            let direccion = ''
+                let instruccion = row.original.instruccion;
+                if (row.original.instruccion.sx_transporte){
+                    instruccion = row.original.instruccion.sx_transporte
+                    direccion = `${row.original.instruccion.sx_transporte.nombre} - `
+                }
+                direccion +=  `${instruccion.direccion_calle} ${ instruccion.direccion_numero_exterior} C.P. ${instruccion.direccion_codigo_postal} Mun.${instruccion.direccion_municipio}`;
+                return   <Box
+                component="span"
+                sx={(theme) => ({
+                  color:
+                  row.original.instruccion.sx_transporte
+                      && theme.palette.error.dark,
+                })}
+              >
+                {direccion}
+              </Box>;
+                
         },
         size:300,
     },
@@ -145,8 +175,10 @@ const columns=useMemo(()=>[
         <MaterialReactTable
             columns={columns}   
             data = {datos}
+            enableMultiRowSelection = {false}
             enableRowSelection
             onRowSelectionChange={setRowSelection}
+            positionToolbarAlertBanner="none"
             state={{ rowSelection }}
             getRowId={(originalRow) => originalRow.id}
             muiTableContainerProps={{ sx: { maxHeight: '80vh' , minHeight: '80vh'} }}
@@ -163,7 +195,7 @@ const columns=useMemo(()=>[
             renderTopToolbarCustomActions={({ table }) => (
                 <div className='pendientes-header-container'>
                     <Box>
-                        Envios Pendientes
+                        Envios Parciales
                     </Box>
                     <PeriodoLabel getData={refrescar}/>
                     <Box>
@@ -175,11 +207,6 @@ const columns=useMemo(()=>[
                         <Tooltip title="Asignar">
                             <IconButton onClick={mostrarDialog}>
                                 <LocalShippingIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Rutear">
-                            <IconButton onClick={crearRuta}>
-                                <PublicIcon />
                             </IconButton>
                         </Tooltip>
                     </Box>
@@ -197,34 +224,18 @@ const columns=useMemo(()=>[
                 gap: '0.5rem',
             
             }}>
-                {/* {row.original.partidas.length >0 && 
-                <>
-                <Tooltip title="Imprimir">
-                    <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{ }} >
-                            <PrintIcon />
-                        </IconButton>
-                </Tooltip>
-                
-                </>
-                
-                    
-                } */}
                 </div>}  
             tableInstanceRef={tableInstanceRef}
         />
         <Dialog 
         open={showDialog} 
-        onClose={()=>{setShowDialog(false)}}
-        PaperProps={{
-            sx: {
-            width: "100%",
-            maxWidth: "50rem",
-            height:"50%" ,
-            maxHeight:"40rem"
-            },
-        }}
+        onClose={onCloseDialog}
+        fullWidth={true}
+        maxWidth={'md'}
+        maxHeight={'md'}
+        sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
         >
-            Dialog
+           <AsignacionParcialForm rowSelected={rowSelection} onCloseDialog={onCloseDialog} />
         </Dialog>
         </div>
     );

@@ -2,68 +2,62 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import AppBar from '@mui/material/AppBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
 import { Link, useLocation } from "react-router-dom";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
-import Collapse from '@mui/material/Collapse';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import EventIcon from '@mui/icons-material/Event';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import RecentActorsIcon from '@mui/icons-material/RecentActors';
-import ArticleIcon from '@mui/icons-material/Article';
+import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
+import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
 import RouteIcon from '@mui/icons-material/Route';
 import BusAlertIcon from '@mui/icons-material/BusAlert';
-
+import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import { ListSubheader,Dialog } from '@mui/material';
+import CreateEmbarqueForm from '../../pages/embarques/asignaciones/asignaciones_form/CreateEmbarqueForm';
+import MantenimientoEntrega from '../../components/mantenimiento_entrega/MantenimientoEntrega';
 
 
 
 
 import './EmbarquesLayout.css'
 
+
 const drawerWidth = 270;
 const navItems = [
     {label:"Tablero",path:"/embarques", icon:<LeaderboardIcon /> },
-    {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<AssignmentReturnIcon /> },
-    {label:"EnviosParciales",path:"/embarques/envios_parciales",icon:<AssignmentReturnIcon /> },
+    {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<PendingActionsIcon /> },
+    {label:"EnviosParciales",path:"/embarques/envios_parciales",icon:<HorizontalSplitIcon /> },
     {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
-    {label:"Transito",path:"/embarques/transito",icon:<LocalShippingIcon /> },
+    {label:"Transito",path:"/embarques/transito",icon:<DepartureBoardIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
     {label:"Ruteo",path:"/embarques/ruteo",icon:<RouteIcon /> },
     {label:"Incidencias",path:"/embarques/incidencias",icon:<BusAlertIcon /> },
+    {label:"Emb.Pasan",path:"/embarques/pasan",icon:<AssignmentIndIcon /> },
 
   ]
-  const catalogoItems = [
-    {label:"Transportes",path:"/embarques", icon:<LocalShippingIcon /> },
-    {label:"Operadores",path:"/embarques", icon:<RecentActorsIcon /> },
-  ]
-  const procesosItems = [
-    {label:"Actualizar F. Entrega",path:"/embarques", icon:<EventIcon /> },
-  ]
+
+
 
 const EmbarquesLayout = () => {
     const location = useLocation()
-    const [openCatalagos, setOpenCatalogos] = React.useState(false);
-    const [openProcesos, setOpenProcesos] = React.useState(false);
-    const handleClickCatalogos = () => {
-      setOpenCatalogos(!openCatalagos);
-    };
-    const handleClickProcesos = () => {
-      setOpenProcesos(!openProcesos);
-    };
+
+    const [openDialogEmbarque, setOpenDialogEmbarque] = React.useState(false);
+    const [openDialogEntrega, setOpenDialogEntrega] = React.useState(false);
+
+    const procesosItems = [
+      {label:"Alta Embarque",fn:()=>{setOpenDialogEmbarque(true)}, icon:<LocalShippingIcon /> },
+      {label:"Mant. Entrega",fn:()=>{setOpenDialogEntrega(true)}, icon:<ManageHistoryIcon /> },
+    ]
   
     return (
         <div className='contenedor-embarques'>
@@ -93,31 +87,22 @@ const EmbarquesLayout = () => {
                     </ListItem>
                 </Link>
               ))}
-   
-                {/* <ListItem  onClick={handleClickCatalogos}  >
-                  <ListItemButton>
-                    <ListItemIcon >
-                      <ArticleIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={'Catalogos'}    />
-                    {openCatalagos ? <ExpandLess /> : <ExpandMore />}
-                  </ListItemButton>
-                </ListItem>
-                <Collapse in={openCatalagos} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding>
-                      {catalogoItems.map((item)=>(
-                        <ListItemButton sx={{ pl: 4 }} key={item.label}>
-                        <ListItemIcon>
-                          {item.icon}
-                        </ListItemIcon>
-                        <ListItemText primary={item.label} />
-                      </ListItemButton>
-                      ))}
-                    </List>
-                  </Collapse> */}
-                  {/* brew uninstall dart */}
             </List>
             <Divider />
+            <List subheader={<ListSubheader>Procesos</ListSubheader>}>
+            {procesosItems.map((item) => (
+            
+                <ListItem  key={item.label}  onClick={item.fn} disablePadding  >
+                  <ListItemButton>
+                    <ListItemIcon >
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText primary={item.label}    />
+                  </ListItemButton>
+                </ListItem>
+                
+              ))}
+            </List>
           </Box>
         </Drawer>
         <Box component="main" sx={{ flexGrow: 1,paddingLeft:3, paddingBottom:2 }}>
@@ -125,6 +110,13 @@ const EmbarquesLayout = () => {
                 <Outlet />
         </Box>
       </Box>
+      <Dialog open={openDialogEmbarque} onClose={()=>{setOpenDialogEmbarque(false)}}  >
+        <CreateEmbarqueForm setOpenDialog={setOpenDialogEmbarque}  getData={()=>{}} /> 
+      </Dialog>
+
+      <Dialog open={openDialogEntrega} onClose={()=>{setOpenDialogEntrega(false)}}  >
+              <MantenimientoEntrega setOpenDialog={setOpenDialogEntrega} />
+      </Dialog>
           
         </div>
     );

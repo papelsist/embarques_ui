@@ -1,12 +1,13 @@
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
 import { MaterialReactTable } from 'material-react-table';
 import { MRT_Localization_ES } from 'material-react-table/locales/es';
-import { Box, Button,IconButton,Tooltip} from '@mui/material';
+import { Box, Button,IconButton,Tooltip,Dialog} from '@mui/material';
 import { tiempoDesdeStr } from '../../../../utils/dateUtils';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import RouteIcon from '@mui/icons-material/Route';
 import Swal from 'sweetalert2'
 import { apiUrl } from '../../../../conf/axios_instance';
 
@@ -15,10 +16,13 @@ import FlightLandIcon from '@mui/icons-material/FlightLand';
 
 import './TransitoTable.css'
 import { ContextEmbarques } from '../../../../context/ContextEmbarques';
+import RutaEmbarqueForm from '../../asignaciones/components/ruta_embarque_form/RutaEmbarqueForm';
 
 const TransitoTable = ({datos, getData}) => {
 
     const {auth} = useContext(ContextEmbarques);
+    const [showRuta, setShowRuta] = useState(false)
+    const [ruta,setRuta] = useState({})
     const navigate = useNavigate()
 
     const handleClickCell = (row) =>{
@@ -58,6 +62,20 @@ const TransitoTable = ({datos, getData}) => {
                 
             }
           })
+    }
+
+    const verRuta = async (row) =>{
+        const url = `${apiUrl.url}embarques/ruta_embarque/${row.id}`
+        const res = await axios.get(url,{params:{embarqueId:row.id},
+            headers: { Authorization: `Bearer ${auth.access}` }})
+
+        const ruta_list = []
+        console.log(res.data)
+        for (let entrega of res.data.partidas) {
+            ruta_list.push(entrega.envio)
+        }
+        setRuta(ruta_list)
+        setShowRuta(true)
     }
 
     const refrescar = ()=>{
@@ -174,12 +192,31 @@ const TransitoTable = ({datos, getData}) => {
                             <FlightLandIcon/>
                         </IconButton>
                         </Tooltip>
+                        <IconButton aria-label="print_route" size="small" color="success"  onClick={()=>{verRuta(row.original)}}  >
+                            <RouteIcon /> 
+                        </IconButton>
                     </> 
                     }
                     </div>
                 } 
                   
             />
+            <Dialog 
+                open={showRuta} 
+                onClose={()=>{setShowRuta(false)}}
+                PaperProps={{
+                    sx: {
+                      width: "100%",
+                      maxWidth: "80rem",
+                      height:"80%" ,
+                      maxHeight:"70rem"
+                    },
+                  }}
+            >
+                <Box>
+                   <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} />
+                </Box>            
+            </Dialog>
             
         </div>
     );

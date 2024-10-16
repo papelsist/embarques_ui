@@ -12,6 +12,7 @@ import Ruteo from "../pages/ruteo/Ruteo";
 import RuteoProvider from "../context/RuteoProvider";
 import Incidencias from "../pages/incidencias/Incidencias";
 import EnviosParciales from "../pages/embarques/envios_parciales/EnviosParciales";
+import Pasan from "../pages/embarques/pasan/Pasan";
 
 
 const EmbarquesRouter =  {
@@ -65,6 +66,10 @@ const EmbarquesRouter =  {
         {
           path:"envios_parciales",
           element:<RuteoProvider><EnviosParciales /></RuteoProvider>
+        },
+        {
+          path:"pasan",
+          element:<Pasan />
         },
       ]
      }

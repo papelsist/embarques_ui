@@ -3,6 +3,7 @@ import PublicLayout from "../layout/public/PublicLayout";
 import TablerosLayout from "../layout/tableros/TablerosLayout";
 import Tableros from "../pages/tableros/Tableros";
 
+
 const TablerosRouter = {
     path:"/tableros",
     element:<PublicLayout />,

@@ -7,6 +7,7 @@ import Test from "./pages/test/Test";
 import ChoferRouter from "./routes/ChoferRouter";
 import EmbarquesRouter from "./routes/EmbarquesRouter";
 import TablerosRouter from "./routes/TablerosRouter";
+import LocalizacionRouter from "./routes/LocalizacionRouter";
 
 
 
@@ -37,5 +38,7 @@ export const router = createHashRouter([
     },
     EmbarquesRouter,
     TablerosRouter, 
-    ChoferRouter
+    ChoferRouter,
+    LocalizacionRouter
+
 ])

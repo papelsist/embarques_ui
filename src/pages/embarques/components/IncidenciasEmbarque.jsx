@@ -1,15 +1,16 @@
-import { List, Paper, ListSubheader,IconButton } from '@mui/material';
+import { List, Paper, ListSubheader,IconButton, Button } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import GraficaKilosOperador from './GraficaKilosOperador';
+
 
 const IncidenciasEmbarque = () => {
 
-
     const handleRefresh = ()=>{
-        console.log('Refrescando Vista')
+        console.log('Refrescando Vista') 
     }
+
 
     return (
         <Paper
