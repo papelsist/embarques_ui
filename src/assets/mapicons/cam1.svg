@@ -1,0 +1,22 @@
+<svg
+  width="75"
+  height="150"
+  viewBox="0 0 75 150"
+  xmlns="http://www.w3.org/2000/svg"
+  transform="rotate(180)"
+>
+  <!-- Cuerpo del camión -->
+  <rect x="10" y="10" width="55" height="80" fill="white" stroke="black" stroke-width="2"/>
+
+  <!-- Cabina del camión -->
+  <rect x="20" y="90" width="35" height="30" fill="gray" stroke="black" stroke-width="2"/>
+
+  <!-- Ventanas -->
+  <rect x="25" y="95" width="25" height="10" fill="lightblue" stroke="black" stroke-width="1"/>
+
+  <!-- Ruedas -->
+  <circle cx="15" cy="5" r="5" fill="red" stroke="black" stroke-width="1"/>
+  <circle cx="60" cy="5" r="5" fill="red" stroke="black" stroke-width="1"/>
+  <circle cx="15" cy="140" r="5" fill="red" stroke="black" stroke-width="1"/>
+  <circle cx="60" cy="140" r="5" fill="red" stroke="black" stroke-width="1"/>
+</svg>

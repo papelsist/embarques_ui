@@ -10,6 +10,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import RouteIcon from '@mui/icons-material/Route';
 import Swal from 'sweetalert2'
 import { apiUrl } from '../../../../conf/axios_instance';
+import PrintIcon from '@mui/icons-material/Print';
 
 
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -110,6 +111,22 @@ const TransitoTable = ({datos, getData}) => {
           })
     }
 
+    const imprimirReporteAsignacion = async(row) =>{
+        const url = `${apiUrl.url}embarques/reporte_asignacion_embarque`
+        const data = {embarqueId: row.id}
+        const response = await axios.get(url,{params:data,
+            headers: { Authorization: `Bearer ${auth.access}` },
+            method: 'GET',
+            responseType: 'blob' //Force to receive data in a Blob Format
+            
+        })
+        const file = new Blob(
+            [response.data], 
+            {type: 'application/pdf'});
+        const fileURL = URL.createObjectURL(file);
+        window.open(fileURL);
+    }
+
     const columns=useMemo(()=>[
         { 
             accessorKey: 'documento', 
@@ -140,6 +157,24 @@ const TransitoTable = ({datos, getData}) => {
             Cell:({cell})=>(tiempoDesdeStr(cell.getValue()))
         },
         { accessorKey: 'comentario', header: 'Comentario'},
+        { 
+            accessorKey: 'partidas', 
+            header: 'Pagos Pendientes',
+            Cell: ({cell})=>(<div>
+                    {cell.getValue().filter(partida=>partida.recepcion_pago === null && partida.origen === 'COD').length}
+                </div>),
+            size:80
+        },
+        { 
+            accessorKey: 'documentos', 
+            header: 'Docs Pendientes',
+            Cell: ({row})=>{
+                return (<div>
+                    {row.original.partidas.filter(partida => partida.recepcion_documentos === null ).length}
+                </div>)},
+            size:80
+   
+        }
     ])
     return (
         <div className='contenedor-transito-table'>
@@ -172,6 +207,7 @@ const TransitoTable = ({datos, getData}) => {
                 )} 
                 enableRowActions 
                 positionActionsColumn="last"
+                muiTableBodyRowProps={{ sx: { "& td:last-child": { width: "100px" } } }}
                 renderRowActions={({
                     row
                   }) => <div style={{
@@ -192,9 +228,13 @@ const TransitoTable = ({datos, getData}) => {
                             <FlightLandIcon/>
                         </IconButton>
                         </Tooltip>
-                        <IconButton aria-label="print_route" size="small" color="success"  onClick={()=>{verRuta(row.original)}}  >
+                        <IconButton aria-label="print_route" size="small" color="secondary"  onClick={()=>{  imprimirReporteAsignacion(row.original)}}  >
+                            <PrintIcon /> 
+                        </IconButton>
+                        <IconButton aria-label="print_route" size="small" color="primary"  onClick={()=>{verRuta(row.original)}}  >
                             <RouteIcon /> 
                         </IconButton>
+                        
                     </> 
                     }
                     </div>

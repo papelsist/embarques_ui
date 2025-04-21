@@ -31,7 +31,6 @@ const Incidencias = () => {
                     localStorage.removeItem('auth')
                     setAuth({})
                     navigate("/login", {replace: true})
-
                 }
             }
             

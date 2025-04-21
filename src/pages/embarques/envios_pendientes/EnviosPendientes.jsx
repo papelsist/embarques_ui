@@ -3,6 +3,7 @@ import EnviosPendientesTable from './components/EnviosPendientesTable';
 import { ContextEmbarques } from '../../../context/ContextEmbarques';
 import { objectIsEmpty } from '../../../utils/embarqueUtils';
 import { apiUrl } from '../../../conf/axios_instance';
+import { useNavigate } from 'react-router-dom';
 
 import axios from 'axios';
 
@@ -11,7 +12,7 @@ const EnviosPendientes = () => {
   
     const [datos, setDatos] = useState([]);
     const {periodo, auth, sucursal, setLoading} = useContext(ContextEmbarques);
-
+    const navigate = useNavigate()
    
     const getData = async ()=>{
        

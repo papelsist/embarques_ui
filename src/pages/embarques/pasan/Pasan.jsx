@@ -4,6 +4,8 @@ import axios from 'axios';
 import { ContextEmbarques } from '../../../context/ContextEmbarques';
 import { apiUrl } from '../../../conf/axios_instance';
 import { useNavigate } from 'react-router-dom';
+
+
 const Pasan = () => {
     const navigate  = useNavigate()
     const [datos, setDatos] = useState([]);

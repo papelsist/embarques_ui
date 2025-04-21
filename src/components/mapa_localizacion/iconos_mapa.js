@@ -7,7 +7,8 @@ import truc from "../../assets/mapicons/truck.svg"
 import dtruck from "../../assets/mapicons/dtruck.svg"
 import truck142 from "../../assets/mapicons/truck-142.svg"
 import truck144 from "../../assets/mapicons/truck-144.svg"
-
+import truck145 from "../../assets/mapicons/truck_nueva.png";
+import camioneta1 from "../../assets/mapicons/camioneta3.svg";
 
 
 
@@ -49,4 +50,14 @@ export const  TruckIcon4 = new Icon({
 export const  TruckIco5 = new Icon({
     iconUrl: truck144,
     iconSize: [30,30]
+    })
+
+export const  TruckIco6 = new Icon({
+        iconUrl: truck145,
+        iconSize: [35,35]
+        })
+
+export const  TruckIco7 = new Icon({
+    iconUrl: camioneta1,
+    iconSize: [35,35]
     })

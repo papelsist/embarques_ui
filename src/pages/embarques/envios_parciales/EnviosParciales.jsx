@@ -5,9 +5,11 @@ import { objectIsEmpty } from '../../../utils/embarqueUtils';
 import { apiUrl } from '../../../conf/axios_instance';
 import EnviosParcialesTable from './components/EnviosParcialesTable';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const EnviosParciales = () => {
 
+    const navigate = useNavigate()
     const [datos, setDatos] = useState([]);
     const {periodo, auth, sucursal, setLoading} = useContext(ContextEmbarques);
 

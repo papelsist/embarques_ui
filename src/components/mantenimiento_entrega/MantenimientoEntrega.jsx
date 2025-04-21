@@ -138,7 +138,7 @@ const MantenimientoEntrega = ({setOpenDialog}) => {
                                 (
                                 <>  
                                     <Grid item xs={12}>
-                                        <Typography  align='center' fullWidth  >{entrega.destinatario}</Typography>
+                                        <Typography  align='center'  >{entrega.destinatario}</Typography>
                                     </Grid>
                                     <Grid item xs={5}>
                                         <Typography  align='center' > Docto: {entrega.documento}</Typography>
@@ -150,7 +150,7 @@ const MantenimientoEntrega = ({setOpenDialog}) => {
                                         <Typography  align='center' > Tipo: {entrega.origen}</Typography>
                                     </Grid>
                                     <Grid item xs={12}>
-                                        <Typography  align='center' fullWidth  >{entrega.operador}</Typography>
+                                        <Typography  align='center'  >{entrega.operador}</Typography>
                                     </Grid>
                                     <Grid item xs={12} sx={{height:'1rem'}}></Grid>
                                     <Grid item xs={12} sx={{display:'flex', alignItems:'center'}}>

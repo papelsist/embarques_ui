@@ -71,7 +71,6 @@ const EntregasForm = () => {
         entregasTemp = [...entregasTemp,found]
         entregasTemp = sortObjectsList(entregasTemp,'entregaId')
         setEntregas(entregasTemp) 
-   
     }
 
     const actualizarRecepcion= (row)=>{
@@ -112,6 +111,7 @@ const EntregasForm = () => {
             id:embarque.id,
             partidas: entregas
         }
+        console.log(data);
         const resp = axios.post(url, data,{headers: { Authorization: `Bearer ${auth.access}` }})
         getData()
         navigate("/embarques/transito")
@@ -121,7 +121,8 @@ const EntregasForm = () => {
           const url = `${apiUrl.url}embarques/actualizar_entregas/${params.id}`
           const res =  await axios.get(url,{headers: { Authorization: `Bearer ${auth.access}` }})
           setEmbarque(res.data)
-          console.log(res.data);
+
+          //console.log(res.data);
     
           if(res.data?.partidas.length != 0){
               const partidasEmbarque = res.data.partidas

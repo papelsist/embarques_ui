@@ -1,0 +1,97 @@
+LOGIN PAGE JSX
+
+
+"use client";
+import React from "react";
+import styles from "./LoginPage.module.css";
+import LoginForm from "./LoginForm";
+
+const LoginPage = () => {
+  return (
+    <main className={styles.loginPage}>
+      <div className={styles.container}>
+        <div className={styles.formColumn}>
+          <LoginForm />
+        </div>
+        <div className={styles.imageColumn}>
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/eb0c9f166202d27d1035b45c4eccf5a92af7dbc7b87ec09672a7d05b539a21bf?placeholderIfAbsent=true"
+            alt="Login page illustration"
+            className={styles.heroImage}
+          />
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default LoginPage;
+
+
+
+
+
+LOGINPAGE MODULE.CSS
+
+
+.loginPage {
+  background-color: #fff;
+  padding-left: 80px;
+  overflow: hidden;
+}
+
+.container {
+  gap: 20px;
+  display: flex;
+}
+
+.formColumn {
+  flex-direction: column;
+  align-items: stretch;
+  width: 27%;
+  margin-left: 0;
+  line-height: normal;
+  display: flex;
+}
+
+.imageColumn {
+  flex-direction: column;
+  align-items: stretch;
+  width: 73%;
+  margin-left: 20px;
+  line-height: normal;
+  display: flex;
+}
+
+.heroImage {
+  aspect-ratio: 0.78;
+  object-fit: contain;
+  object-position: center;
+  flex-grow: 1;
+  width: 100%;
+  box-shadow: 50px 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+@media (width <= 991px) {
+  .loginPage {
+    padding-left: 20px;
+  }
+
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .formColumn,
+  .imageColumn {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .heroImage {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+}
+

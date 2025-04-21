@@ -108,7 +108,7 @@ const Tableros = () => {
       getEnviosTransito()
       getEnviosParciales()
       getEmbarquesTransito()
-      const intervalId = setInterval(getData, 60000)
+      const intervalId = setInterval(getData, 600000)
       return () => {
         clearInterval(intervalId)
       }
@@ -123,7 +123,7 @@ const Tableros = () => {
           spaceBetween={30}
           centeredSlides={true}
           autoplay={{
-            delay: 5000,
+            delay: 20000,
             disableOnInteraction: false,
           }}
           pagination={{

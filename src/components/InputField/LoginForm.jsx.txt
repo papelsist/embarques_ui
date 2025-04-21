@@ -1,0 +1,111 @@
+LoginForm.jsx
+
+"use client";
+import React, { useState } from "react";
+import styles from "./LoginForm.module.css";
+import InputField from "./InputField";
+
+const LoginForm = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Handle login logic here
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.loginForm}>
+      <h1 className={styles.title}>LOGIN</h1>
+
+      <InputField
+        label="USUARIO"
+        type="text"
+        name="username"
+        value={formData.username}
+        onChange={(value) => handleChange("username", value)}
+        leftIcon="https://cdn.builder.io/api/v1/image/assets/TEMP/13ba18a50da9d98e2a8c0cb0661ce59ea0b7bcf41dfe7c08271d1a14a90dfc93?placeholderIfAbsent=true"
+        rightIcon="https://cdn.builder.io/api/v1/image/assets/TEMP/e927d2ef7e31f55c3c0a6fb20c8bf43d69276ab395c488d5c1acb98a47d89d71?placeholderIfAbsent=true"
+      />
+
+      <InputField
+        label="CONTRASEÑA"
+        type="password"
+        name="password"
+        value={formData.password}
+        onChange={(value) => handleChange("password", value)}
+        leftIcon="https://cdn.builder.io/api/v1/image/assets/TEMP/13ba18a50da9d98e2a8c0cb0661ce59ea0b7bcf41dfe7c08271d1a14a90dfc93?placeholderIfAbsent=true"
+        rightIcon="https://cdn.builder.io/api/v1/image/assets/TEMP/e927d2ef7e31f55c3c0a6fb20c8bf43d69276ab395c488d5c1acb98a47d89d71?placeholderIfAbsent=true"
+      />
+
+      <button type="submit" className={styles.submitButton}>
+        INGRESAR
+      </button>
+    </form>
+  );
+};
+
+export default LoginForm;
+
+
+
+LoginForm.module.css
+
+
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.title {
+  color: #000;
+  align-self: center;
+  font-family:
+    Lexend Exa,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.submitButton {
+  color: #fff;
+  text-align: center;
+  border-radius: 15px;
+  align-self: center;
+  width: 219px;
+  max-width: 100%;
+  margin-top: 77px;
+  padding: 8px 31px;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  background-color: #000;
+}
+
+@media (width <= 991px) {
+  .loginForm {
+    margin-top: 40px;
+  }
+
+  .submitButton {
+    margin-top: 40px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}

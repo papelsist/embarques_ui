@@ -3,13 +3,14 @@ import { Box, Divider,TextField,Grid, Typography, Button, Checkbox,FormControlLa
 import RouteIcon from '@mui/icons-material/Route';
 import axios from 'axios';
 import ToolbarRuteo from './components/ToolbarRuteo';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Rutas from './components/Rutas';
 import Outliers from './components/Outliers';
 import NoAsignados from './components/NoAsignados';
 import { apiUrl } from '../../conf/axios_instance';
 import { ContextEmbarques } from '../../context/ContextEmbarques';
 import { ContextRuteo } from '../../context/ContextRuteo';
+
 
 
 
@@ -20,6 +21,7 @@ import "./Ruteo.css"
 
 const Ruteo = () => {
     const location = useLocation();
+    const navigate = useNavigate()
     const{sucursal,auth, setLoading} = useContext(ContextEmbarques)
     const {ruteo,setRuteo,rutas,setRutas,outliers,setOutliers,noAsignados,setNoAsignados} = useContext(ContextRuteo)
 

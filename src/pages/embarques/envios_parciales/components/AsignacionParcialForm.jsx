@@ -1,6 +1,5 @@
 import React, {useContext, useEffect, useState, useMemo} from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Typography, Box, Divider, Grid,Button } from '@mui/material';
-import DataTable from 'react-data-table-component';
 import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 import axios from 'axios';
 import { apiUrl } from '../../../../conf/axios_instance';
@@ -14,9 +13,9 @@ import '../EnviosParciales.css';
 
 
 
-const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
+const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
 
-    const {auth,sucursal} = useContext(ContextEmbarques);
+    const {auth,sucursal,loading, setLoading} = useContext(ContextEmbarques);
     const [transportes, setTransportes] = useState([])
     const [envio, setEnvio] = useState(null);
     const [embarque, setEmbarque] = useState('');
@@ -56,7 +55,6 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
     };
 
     const getEnvio = async ()=>{
-        
         const envioId = Object.keys(rowSelected)[0]
         const url = `${apiUrl.url}embarques/envios_parciales/${envioId}/`
         const resp = await axios.get(url,{
@@ -78,6 +76,8 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
 
 
     const handleAgregar = async() =>{
+
+        setLoading(true)
         
         const partidas = detalles.filter((detalle)=> detalle.enviar )
         const url = `${apiUrl.url}embarques/asignar_envios_parciales`
@@ -88,6 +88,7 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
         }
         
         onCloseDialog()
+        setLoading(false)
 
         if (partidas.length === 0){
             Swal.fire({
@@ -116,7 +117,10 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
                         icon: 'success',
                         title: 'Envio parcial asignado',
                         text: `Envio ${envio.documento} asignado correctamente a ${embarque.operador.nombre}`,
+                      }).then(()=>{
+                        getData()
                       })
+                   
                 }
                 
             }
@@ -251,7 +255,7 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog}) => {
                                 margin:1,
                             }}>
                             <Divider sx={{mb:2}} />
-                                <Button  sx={{mr:8, ml:5 }} onClick={handleAgregar} disabled= {!embarque }>Asignar</Button>
+                                <Button  sx={{mr:8, ml:5 }} onClick={handleAgregar} disabled= {!embarque || loading }>Asignar</Button>
                                 <Button onClick={onCloseDialog}>Salir</Button>
                             </Box>
                     </Box>

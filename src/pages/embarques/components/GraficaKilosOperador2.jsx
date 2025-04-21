@@ -27,7 +27,7 @@ export const data = {
 
 
 const GraficaKilosOperador2 = ({periodo}) => {
-  const {auth} = useContext(ContextEmbarques)
+  const {auth, sucursal} = useContext(ContextEmbarques)
   const [datos, setDatos] = useState([])
 
   const generateRandomColor = () => {
@@ -41,7 +41,7 @@ const GraficaKilosOperador2 = ({periodo}) => {
     const url = `${apiUrl.url}dashboards/embarques_operador`
   
     const resp = await axios.get(url, 
-      {params:{fecha_inicial:periodo.fecha_inicial, fecha_final: periodo.fecha_final},
+      {params:{fecha_inicial:periodo.fecha_inicial, fecha_final: periodo.fecha_final, sucursal:sucursal.id},
       headers: { Authorization: `Bearer ${auth.access}` }
       })
       const labels = resp.data.map((val) => val.operador__nombre)

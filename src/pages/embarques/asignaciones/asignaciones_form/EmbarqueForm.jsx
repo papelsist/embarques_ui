@@ -38,7 +38,7 @@ const EmbarqueForm = () => {
         }).then(async(result) => {
           if (result.isConfirmed) {
             const resp = await borrarPatida(row)
-           
+
             if(resp >= 0){
               const entregasNew = entregas.filter((entrega)=>  entrega.id !== row.id)
               setEntregas(entregasNew)
@@ -270,9 +270,9 @@ const EmbarqueForm = () => {
                         <Grid item xs={2}>
                         <TextField  variant="standard" value={embarque ? embarque.fecha : ""} name="fecha"  disabled fullWidth />
                         </Grid>
-                        <Grid item xs={1}>
+                        {/* <Grid item xs={1}>
                             <FormControlLabel control={<Checkbox onChange={(e)=>{setCp(e.target.checked)}} checked={cp} name='cp'/>}  label="FORANEO" />
-                        </Grid> 
+                        </Grid>  */}
                     </Grid>
                     <Grid container columnSpacing={2}   sx={{ marginBottom:1,
                                 display: 'flex',

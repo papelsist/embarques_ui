@@ -50,7 +50,7 @@ const BuscadorEnvio = ({setOpenDialog, agregarEntregas}) => {
 
 
     const getData = async ()=> {
-        const url = `${apiUrl.url}embarques/search_envio`
+        const url = `${apiUrl.url}embarques/search_envio_surtido`
         setEnvio(null)
         setLoading(true)
         const datos = await axios.get(url, {params:{...values,sucursal:sucursal.nombre}, headers: { Authorization: `Bearer ${auth.access}` }})

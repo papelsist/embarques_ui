@@ -13,6 +13,8 @@ import RuteoProvider from "../context/RuteoProvider";
 import Incidencias from "../pages/incidencias/Incidencias";
 import EnviosParciales from "../pages/embarques/envios_parciales/EnviosParciales";
 import Pasan from "../pages/embarques/pasan/Pasan";
+import InstrucionEntregaParcial from "../pages/embarques/instruccion_entrega_parcial/InstrucionEntregaParcial";
+import CapturasEntregas from "../pages/embarques/captura_entregas/CapturasEntregas";
 
 
 const EmbarquesRouter =  {
@@ -71,6 +73,14 @@ const EmbarquesRouter =  {
           path:"pasan",
           element:<Pasan />
         },
+        {
+          path:"instruccion_entrega_parcial",
+          element:<InstrucionEntregaParcial />
+        },
+        {
+          path:"capturas_entregas",
+          element:<CapturasEntregas />
+        }
       ]
      }
     ]

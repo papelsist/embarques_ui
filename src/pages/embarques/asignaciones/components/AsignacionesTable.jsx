@@ -26,7 +26,31 @@ const AsignacionesTable = ({datos, getData}) => {
     const handleClickCell = (row) => {
         navigate(`create/${row.id}`)
     }
+
+
     const registrarSalida = (row) =>{
+
+        let enCero = 0
+        for (let partida of row.partidas) {
+            console.log(partida)
+            for (let detalle of partida.detalles) {
+                console.log(detalle.cantidad);
+                const cantidad = Number(detalle.cantidad)
+                if(cantidad === 0){
+                    enCero += 1
+                }
+            }   
+        }
+
+        if(enCero > 0){
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hay partidas con cantidad en cero!',
+              })
+              return
+        }
+
         const url = `${apiUrl.url}embarques/registrar_salida`
         Swal.fire({
             title: `Salida de Embarque: ${row.documento} de ${row.operador.nombre} `,
@@ -42,8 +66,9 @@ const AsignacionesTable = ({datos, getData}) => {
                     const res = await axios.post(url,row, {headers: { Authorization: `Bearer ${auth.access}` }})
                     getData()
                 }
-          })
+          }) 
     }
+
     const refrescar = ()=>{
         getData()
     }

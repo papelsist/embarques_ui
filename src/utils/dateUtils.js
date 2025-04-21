@@ -108,14 +108,26 @@ export const changeDate = (dateStr) =>{
    return newDate
 }
 
+export const changeDateFormat = (dateStr) =>{
+    const partesFecha = dateStr.split("-")
+    const fecha = `${partesFecha[2]}/${partesFecha[1]}/${partesFecha[0]}`
+    return fecha 
+}
+
 
 export const changeDateStr = (dateStr) =>{
     /**
      * Cambia el formato de la fecha de yyyy-mm-dd a dd-mm-yyyy
      */
     if (dateStr){
+        console.log("--",dateStr)
         const partesFecha = dateStr.split("-")
+        console.log(partesFecha[2],
+            partesFecha[1],
+            partesFecha[0]
+        );
         const newDate = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`)
+        console.log("**",newDate)
         return newDate.toLocaleDateString()
     }else{
         return ""

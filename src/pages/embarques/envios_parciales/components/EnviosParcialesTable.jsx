@@ -1,26 +1,28 @@
-import React, {useEffect, useState, useMemo, useRef, useContext } from 'react';
-import { Box, Button,IconButton,Tooltip} from '@mui/material';
+import React, {useState, useMemo, useRef, useContext } from 'react';
+import { Box,IconButton,Tooltip} from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import { MRT_Localization_ES } from 'material-react-table/locales/es';
 import { useNavigate } from 'react-router-dom';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Dialog from '@mui/material/Dialog';
-import PublicIcon from '@mui/icons-material/Public';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PeriodoLabel from '../../../../components/periodo_date_picker/PeriodoLabel';
-import { ContextEmbarques } from '../../../../context/ContextEmbarques';
-import axios from 'axios';
-import { apiUrl } from '../../../../conf/axios_instance';
-import Swal from 'sweetalert2'
 import AsignacionParcialForm from './AsignacionParcialForm';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import PieChartIcon from '@mui/icons-material/PieChart';
+import AnotacionesForm from '../../envios_pendientes/components/AnotacionesForm';
+import InstruccionEntregaParcial from './InstruccionEntregaParcial';
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
+import BuscadorEnvioParcial from '../../components/BuscadorEnvioParcial';
 
 const EnviosParcialesTable = ({datos, getData,setDatos}) => {
-    const navigate = useNavigate()
     const [rowSelection, setRowSelection] = useState({});
-    const [transporte, setTransporte] = useState(null);
     const [showDialog, setShowDialog] = useState(false);
     const tableInstanceRef = useRef(); 
-    const {auth, sucursal,setLoading} = useContext(ContextEmbarques);
+    const [envio, setEnvio] = useState(null)
+    const [showDialogTransporte, setShowDialogTransporte] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [showBuscador, setShowBuscador] = useState(false)
 
     const refrescar = ()=>{
         setDatos([])
@@ -32,78 +34,43 @@ const EnviosParcialesTable = ({datos, getData,setDatos}) => {
         setRowSelection({})
     }
 
-    const crearRuta = async ()=>{
-       /*  setLoading(true)
-        const rowSelection = tableInstanceRef.current.getState().rowSelection;
-        const envios_ids = Object.keys(rowSelection).join(",")
-        if(envios_ids){
-            try{
-                const url = `${apiUrl.url}ruteo/sugerencia_ruta_envios`        
-                const resp = await axios.get(url, 
-                    {params:{envios:envios_ids, sucursal: sucursal.nombre},
-                    headers: { Authorization: `Bearer ${auth.access}` }
-                    })
-                console.log("Antes de navegar al ruteo ...")
-                navigate("/embarques/ruteo" , { state: resp.data })
-                console.log("Navegando hacia el ruteo ....")
-                setLoading(false)
-        
-            }catch(error){
-                if(error.response?.status === 401){
-                    navigate(`../../login`)
-            }}
-        } */
-      
-}
-
-
-
-const asignar = (transporte) =>{
-    const rowSelection = tableInstanceRef.current.getState().rowSelection;
-    console.log(rowSelection);
-    //setShowDialog(false)
-   /*  const rowSelection = tableInstanceRef.current.getState().rowSelection;
-    console.log(Object.keys(rowSelection))
-    Swal.fire({
-        title: `Asignación de Ruta `,
-        text: `Asignar ruta a embarque ${"ruta.embarque.documento"} ? `,
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar'
-      }).then(async(result)=>{
-            if(result.isConfirmed){  
-               setLoading(true)
-                const url = `${apiUrl.url}embarques/asignar_evios_pendientes`
-                const data ={
-                    embarque_id: transporte.id,
-                    envios: Object.keys(rowSelection)
-                }
-                const resp = await axios.post(url,data,{headers: { Authorization: `Bearer ${auth.access}` }}) 
-                setLoading(false) 
-                setRowSelection({})
-                refrescar()
-            }
-      })  */  
-}
-
 const mostrarDialog =()=>{
     const rowSelection = tableInstanceRef.current.getState().rowSelection;
     setRowSelection(rowSelection)
     if (Object.keys(rowSelection).length !== 0)
         setShowDialog(true)
-
-    /* 
-    const envios_ids = Object.keys(rowSelection).join(",")
-    console.log(Object.keys(rowSelection))
-    if(envios_ids){
-        setShowDialog(true)
-        console.log(envios_ids)
-    }
-    */ 
 }
 
+const verAnotaciones = (row)=>{
+    setEnvio(row)
+    setShowDialogTransporte(true)
+}
+
+const closeDialogTransporte = ()=>{
+    setEnvio(null)
+    setShowDialogTransporte(false)
+}
+
+const onOpenDialogInstruccion = ()=>{
+    const rowSelection = tableInstanceRef.current.getState().rowSelection;
+    setRowSelection(rowSelection)
+    if (Object.keys(rowSelection).length !== 0)
+        setOpenDialog(true)
+}
+
+const onCloseDialogInstruccion = ()=>{
+    setEnvio(null)
+    setOpenDialog(false)
+    setRowSelection({})
+}
+
+const onOpenBuscador = () => {  
+    setShowBuscador(true);
+}
+
+const onCloseBuscador = () => {
+    setShowBuscador(false);
+}
 
 const columns=useMemo(()=>[
     { 
@@ -209,6 +176,16 @@ const columns=useMemo(()=>[
                                 <LocalShippingIcon />
                             </IconButton>
                         </Tooltip>
+                        <Tooltip title="Instruccion">
+                            <IconButton onClick={onOpenDialogInstruccion}>
+                                <PieChartIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Busqueda ">
+                            <IconButton onClick={onOpenBuscador}>
+                                <TroubleshootIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                 </div>
                 
@@ -224,6 +201,18 @@ const columns=useMemo(()=>[
                 gap: '0.5rem',
             
             }}>
+                {row.original.anotaciones.length >0 && 
+                    <>
+                       <Tooltip title="Ver Anotaciones">
+                        <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{verAnotaciones(row.original)}} >
+                                <EditNoteIcon />
+                            </IconButton>
+                       </Tooltip>
+                       
+                    </>
+                    
+                        
+                    } 
                 </div>}  
             tableInstanceRef={tableInstanceRef}
         />
@@ -235,7 +224,40 @@ const columns=useMemo(()=>[
         maxHeight={'md'}
         sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
         >
-           <AsignacionParcialForm rowSelected={rowSelection} onCloseDialog={onCloseDialog} />
+           <AsignacionParcialForm rowSelected={rowSelection} onCloseDialog={onCloseDialog} getData={getData} />
+        </Dialog>
+        <Dialog
+                open={showDialogTransporte} 
+                onClose={closeDialogTransporte}
+                
+                maxWidth={'md'}
+             >
+                {
+                    envio && 
+                    <AnotacionesForm row={envio} setOpenDialog={setShowDialogTransporte}/>
+                }
+        </Dialog>
+        <Dialog 
+        open={openDialog} 
+        onClose={onCloseDialogInstruccion}
+        fullWidth={true}
+        maxWidth={'md'}
+        maxHeight={'md'}
+        sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
+        >
+            <InstruccionEntregaParcial rowSelected={rowSelection} onCloseDialog={onCloseDialogInstruccion} getData={getData} />
+        </Dialog>
+        <Dialog 
+            open={showBuscador} 
+            onClose={onCloseBuscador}
+            fullWidth={true}
+            maxWidth={'md'}
+            maxHeight={'md'}
+            sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
+        >
+            {/* <BuscadorEnvioParcial  onCloseDialog={onCloseBuscador} onOpenDialog={onOpenDialog} setRowSelection={setRowSelection} setShowDialog={setShowDialog}  /> */}
+            <BuscadorEnvioParcial onCloseDialog={onCloseBuscador} setRowSelection={setRowSelection} mostrarDialog={mostrarDialog} onOpenDialogInstruccion={onOpenDialogInstruccion}   />
+            
         </Dialog>
         </div>
     );

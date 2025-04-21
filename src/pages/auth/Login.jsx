@@ -42,19 +42,27 @@ const Login = () => {
                 params:{}, 
                 headers: { Authorization: `Bearer ${resp.data.access}` }
             })
+
             const auth = {...resp.data, ...resp2.data}
             localStorage.setItem('auth',JSON.stringify(auth))
+
             const {access, refresh,username,nombres,sucursal, user_permissions: permisos, groups: grupos  } = auth
+
             let controlador = grupos.filter((grupo)=> grupo.name == 'controladores').length > 0
             let rol = null
+
             if (controlador) {
                 rol = 'controlador'
             }
+
             setAuth({access: access, refresh: refresh,username: username,nombres: nombres,permisos : permisos, sucursal:sucursal , grupos: grupos,rol: rol})
             setSucursal(sucursal)
             if(resp.data.access){
                 navigate('/', {replace: true})
             }
+
+        
+
           }catch(error){
             console.log(error)
             setLoginError(true)

@@ -17,12 +17,14 @@ const axiosInstance = axios.create({
 
 
   export const apiUrl = {
-    url: "http://10.10.1.85:9002/api/",
+    url: "http://localhost:9002/api/",
     url2: "http://10.10.1.85:8000/",
   }
 
+
+  
 /*   export const apiUrl = {
     url: "http://198.199.69.63:7000/api/",
     url2: "http://198.199.69.63:7000/",
-  }
+  } 
  */

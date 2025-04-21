@@ -13,7 +13,14 @@ import axios from 'axios';
 import { apiUrl } from '../../../../conf/axios_instance';
 import Swal from 'sweetalert2'
 import TransportesEnviosPendientes from './TransportesEnviosPendientes';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import "./EnviosPendientesTable.css"
+import AnotacionesForm from './AnotacionesForm';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AsignacionParcialForm from '../../envios_parciales/components/AsignacionParcialForm';
+import ChecklistRtlIcon from '@mui/icons-material/ChecklistRtl';
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
+import BuscadorEnvioPendiente from '../../components/BuscadorEnvioPendiente';
 
 
 
@@ -22,8 +29,13 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
     const [rowSelection, setRowSelection] = useState({});
     const [transporte, setTransporte] = useState(null);
     const [showDialog, setShowDialog] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    
+    const [showDialogTransporte, setShowDialogTransporte] = useState(false);
     const tableInstanceRef = useRef(); 
     const {auth, sucursal,setLoading} = useContext(ContextEmbarques);
+    const [envio, setEnvio] = useState(null)
+    const [showBuscador, setShowBuscador] = useState(false)
 
 
 
@@ -66,6 +78,16 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
         }  
     }
 
+    const verAnotaciones = (row)=>{
+        setEnvio(row)
+        setShowDialogTransporte(true)
+    }
+
+    const closeDialogTransporte = ()=>{
+        setEnvio(null)
+        setShowDialogTransporte(false)
+    }
+
     const asginar = (transporte) =>{
         setShowDialog(false)
         const rowSelection = tableInstanceRef.current.getState().rowSelection;
@@ -94,6 +116,29 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
           })   
     }
 
+    const onOpenDialog = () => {
+
+        if (Object.keys(rowSelection).length === 0){
+            return
+        }
+         
+        setOpenDialog(true);
+        //const rowSelection = tableInstanceRef.current.getState().rowSelection;
+        console.log(rowSelection);
+
+    }
+
+    const onCloseDialog = () => {
+        setOpenDialog(false);
+    }
+
+    const onOpenBuscador = () => {  
+        setShowBuscador(true);
+    }
+
+    const onCloseBuscador = () => {
+        setShowBuscador(false);
+    }
 
 
     const columns=useMemo(()=>[
@@ -162,7 +207,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
     
     return (
         <div className='contenedor-pendientes-table '>
-                        {/* */}
+                    
             <MaterialReactTable
                 columns={columns}
                 data = {datos}
@@ -194,9 +239,19 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
-                            <Tooltip title="Asignar">
+                            <Tooltip title="Asignación Total">
                                 <IconButton onClick={mostrarDialog}>
                                     <LocalShippingIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Asignación Parcial">
+                                <IconButton onClick={onOpenDialog}>
+                                    <ChecklistRtlIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Busqueda ">
+                                <IconButton onClick={onOpenBuscador}>
+                                    <TroubleshootIcon />
                                 </IconButton>
                             </Tooltip>
                             <Tooltip title="Rutear">
@@ -219,18 +274,27 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
                     gap: '0.5rem',
                    
                   }}>
-                    {/* {row.original.partidas.length >0 && 
+                    {
+                        row.original.surtido !== null && (
+                            <Tooltip title="Surtido">
+                                <IconButton aria-label="delete" size="small" color='success'  >
+                                    <CheckCircleIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )
+                    }
+                    {row.original.anotaciones.length >0 && 
                     <>
-                       <Tooltip title="Imprimir">
-                        <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{ }} >
-                                <PrintIcon />
+                       <Tooltip title="Ver Anotaciones">
+                        <IconButton aria-label="delete" size="small" color='secondary' onClick={()=>{verAnotaciones(row.original)}} >
+                                <EditNoteIcon />
                             </IconButton>
                        </Tooltip>
                        
-                    </>
+                       
+                    </>            
+                    } 
                     
-                        
-                    } */}
                     </div>}  
                 tableInstanceRef={tableInstanceRef}
             />
@@ -248,6 +312,37 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
             >
                <TransportesEnviosPendientes asignar={asginar} />
             </Dialog>
+            <Dialog
+                open={showDialogTransporte} 
+                onClose={closeDialogTransporte}
+                maxWidth={'md'}
+             >
+                {
+                    envio && 
+                    <AnotacionesForm row={envio} setOpenDialog={setShowDialogTransporte}/>
+                }
+            </Dialog>
+            <Dialog 
+                open={openDialog} 
+                onClose={onCloseDialog}
+                fullWidth={true}
+                maxWidth={'md'}
+                maxHeight={'md'}
+                sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
+            >
+                <AsignacionParcialForm rowSelected={rowSelection} onCloseDialog={onCloseDialog} getData={getData} />
+            </Dialog>
+            <Dialog 
+                open={showBuscador} 
+                onClose={onCloseBuscador}
+                fullWidth={true}
+                maxWidth={'md'}
+                maxHeight={'md'}
+                sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
+            >
+                <BuscadorEnvioPendiente  onCloseDialog={onCloseBuscador} onOpenDialog={onOpenDialog} setRowSelection={setRowSelection} setShowDialog={setShowDialog}  />
+            </Dialog>
+
         </div>
     );
 }

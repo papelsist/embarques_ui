@@ -25,6 +25,10 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import { ListSubheader,Dialog } from '@mui/material';
 import CreateEmbarqueForm from '../../pages/embarques/asignaciones/asignaciones_form/CreateEmbarqueForm';
 import MantenimientoEntrega from '../../components/mantenimiento_entrega/MantenimientoEntrega';
+import TocIcon from '@mui/icons-material/Toc';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import SeguimientoEnvio from '../../pages/embarques/components/SeguimientoEnvio';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
 
 
@@ -37,12 +41,14 @@ const navItems = [
     {label:"Tablero",path:"/embarques", icon:<LeaderboardIcon /> },
     {label:"EnviosPendientes",path:"/embarques/envios_pendientes",icon:<PendingActionsIcon /> },
     {label:"EnviosParciales",path:"/embarques/envios_parciales",icon:<HorizontalSplitIcon /> },
+    {label:"InstrucciónEntregaParcial",path:"/embarques/instruccion_entrega_parcial",icon:<TocIcon /> },
     {label:"Asignaciones",path:"/embarques/asignaciones", icon:<AssignmentIcon /> },
     {label:"Transito",path:"/embarques/transito",icon:<DepartureBoardIcon /> },
     {label:"Regresos",path:"/embarques/regresos",icon:<AssignmentReturnIcon /> },
     {label:"Ruteo",path:"/embarques/ruteo",icon:<RouteIcon /> },
     {label:"Incidencias",path:"/embarques/incidencias",icon:<BusAlertIcon /> },
     {label:"Emb.Pasan",path:"/embarques/pasan",icon:<AssignmentIndIcon /> },
+    {label:"CapturasEntregas",path:"/embarques/capturas_entregas",icon:<PhotoCameraIcon /> },
 
   ]
 
@@ -53,10 +59,12 @@ const EmbarquesLayout = () => {
 
     const [openDialogEmbarque, setOpenDialogEmbarque] = React.useState(false);
     const [openDialogEntrega, setOpenDialogEntrega] = React.useState(false);
+    const [openDialogSeguimiento, setOpenDialogSeguimiento] = React.useState(false);
 
     const procesosItems = [
       {label:"Alta Embarque",fn:()=>{setOpenDialogEmbarque(true)}, icon:<LocalShippingIcon /> },
       {label:"Mant. Entrega",fn:()=>{setOpenDialogEntrega(true)}, icon:<ManageHistoryIcon /> },
+      {label:"Seguimiento Envío",fn:()=>{setOpenDialogSeguimiento(true)}, icon:<MonitorHeartIcon /> },
     ]
   
     return (
@@ -116,6 +124,13 @@ const EmbarquesLayout = () => {
 
       <Dialog open={openDialogEntrega} onClose={()=>{setOpenDialogEntrega(false)}}  >
               <MantenimientoEntrega setOpenDialog={setOpenDialogEntrega} />
+      </Dialog>
+      <Dialog
+        open={openDialogSeguimiento}
+        onClose={()=>{setOpenDialogSeguimiento(false)}}
+        maxWidth={"md"}
+      >
+        <SeguimientoEnvio setOpenDialogSeguimiento={setOpenDialogSeguimiento} />
       </Dialog>
           
         </div>

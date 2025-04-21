@@ -1,18 +1,37 @@
 import React from 'react';
-import { Toolbar  } from '@mui/material';
+import { Toolbar, Grid  } from '@mui/material';
+import InputField from '../../components/InputField/InputField';
+import PrintIcon from '@mui/icons-material/Print';
+
 
 
 import "./Test.css"
-import CreateEmbarqueForm from '../embarques/asignaciones/asignaciones_form/CreateEmbarqueForm';
-import EmbarqueForm from '../embarques/asignaciones/asignaciones_form/EmbarqueForm';
-import MapaTest from '../../components/mapa_test/MapaTest';
-import MapaTest2 from '../../components/mapa_test/MapaTest2';
+
 
 const Test = () => {
+
+    const onChange = ()=>{
+        console.log("change")
+    }
+
     return (
-        <div className='test-container' style={{display:"flex"}}>
-            <MapaTest2 />
-        </div>
+        <>
+            <Toolbar className="toolbar"/>
+            <h1>Test</h1>
+            
+            <Grid container columnSpacing={2}    
+                        sx={{
+                                display: 'flex' ,
+                                '& .MuiTextField-root': { ml: 1},
+                            }}
+                    >
+                    <Grid item xs={6}>
+                    <InputField onChange={onChange} label ={"Nombre"} leftIcon={<PrintIcon />} />    
+                    </Grid>
+            </Grid>
+       
+        </>
+        
     );
 }
 
