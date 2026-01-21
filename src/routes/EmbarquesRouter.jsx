@@ -15,6 +15,7 @@ import EnviosParciales from "../pages/embarques/envios_parciales/EnviosParciales
 import Pasan from "../pages/embarques/pasan/Pasan";
 import InstrucionEntregaParcial from "../pages/embarques/instruccion_entrega_parcial/InstrucionEntregaParcial";
 import CapturasEntregas from "../pages/embarques/captura_entregas/CapturasEntregas";
+import GeolocalizacionEnvios from "../pages/geolocalizacion_envios/GeolocalizacionEnvios";
 
 
 const EmbarquesRouter =  {
@@ -80,6 +81,10 @@ const EmbarquesRouter =  {
         {
           path:"capturas_entregas",
           element:<CapturasEntregas />
+        },
+        {
+          path:"geolocalizacion_envios",
+          element:<GeolocalizacionEnvios />
         }
       ]
      }

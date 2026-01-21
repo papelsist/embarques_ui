@@ -29,6 +29,7 @@ import TocIcon from '@mui/icons-material/Toc';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import SeguimientoEnvio from '../../pages/embarques/components/SeguimientoEnvio';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 
 
 
@@ -49,7 +50,7 @@ const navItems = [
     {label:"Incidencias",path:"/embarques/incidencias",icon:<BusAlertIcon /> },
     {label:"Emb.Pasan",path:"/embarques/pasan",icon:<AssignmentIndIcon /> },
     {label:"CapturasEntregas",path:"/embarques/capturas_entregas",icon:<PhotoCameraIcon /> },
-
+    {label:"Localización envios",path:"/embarques/geolocalizacion_envios",icon:<GpsFixedIcon /> },
   ]
 
 

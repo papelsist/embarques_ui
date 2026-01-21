@@ -230,7 +230,7 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
                 renderTopToolbarCustomActions={({ table }) => (
                     <div className='pendientes-header-container'>
                         <Box>
-                            Envios Pendientes
+                            Envios Pendientes 
                         </Box>
                          <PeriodoLabel getData={refrescar}/>
                         <Box>

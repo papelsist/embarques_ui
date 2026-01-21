@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState, useMemo} from 'react';
-import { FormControl, InputLabel, MenuItem, Select, Typography, Box, Divider, Grid,Button } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Select, Typography, Box, Divider, Grid,Button, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 import axios from 'axios';
 import { apiUrl } from '../../../../conf/axios_instance';
@@ -13,13 +14,42 @@ import '../EnviosParciales.css';
 
 
 
-const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
+const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData, isFullscreen = false}) => {
 
     const {auth,sucursal,loading, setLoading} = useContext(ContextEmbarques);
     const [transportes, setTransportes] = useState([])
     const [envio, setEnvio] = useState(null);
     const [embarque, setEmbarque] = useState('');
     const [detalles, setDetalles] = useState([])
+    
+    // Función para configurar z-index de SweetAlert2 cuando se abre
+    const configureSwalZIndex = () => {
+        if (isFullscreen) {
+            const applyZIndex = () => {
+                const swalContainer = document.querySelector('.swal2-container');
+                if (swalContainer) {
+                    swalContainer.style.zIndex = '13000';
+                }
+                const swalPopup = document.querySelector('.swal2-popup');
+                if (swalPopup) {
+                    swalPopup.style.zIndex = '13001';
+                }
+                const swalBackdrop = document.querySelector('.swal2-backdrop-show') || 
+                                   document.querySelector('.swal2-backdrop');
+                if (swalBackdrop) {
+                    swalBackdrop.style.zIndex = '12999';
+                }
+            };
+            
+            // Aplicar inmediatamente
+            applyZIndex();
+            
+            // Aplicar después de un pequeño delay para asegurar que el DOM esté listo
+            setTimeout(applyZIndex, 10);
+            setTimeout(applyZIndex, 50);
+            setTimeout(applyZIndex, 100);
+        }
+    };
  
 
     const getTransportesDisponibles = async ()=>{
@@ -31,7 +61,7 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
                     headers: { Authorization: `Bearer ${auth.access}` }
                 } )
                 setTransportes(resp.data)
-                console.log(resp.data);
+            
             }catch(error){
                 if(error.response?.status === 401){
                     navigate(`../../login`)
@@ -56,11 +86,13 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
 
     const getEnvio = async ()=>{
         const envioId = Object.keys(rowSelected)[0]
+        console.log(envioId);
         const url = `${apiUrl.url}embarques/envios_parciales/${envioId}/`
         const resp = await axios.get(url,{
             headers: { Authorization: `Bearer ${auth.access}` }
         })
         setEnvio(resp.data)
+        console.log(resp.data.detalles);
         if(resp.data.detalles){
             setDetalles(resp.data.detalles)
         }
@@ -70,7 +102,19 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
 
     const handleChange = (event) => {
         setEmbarque(event.target.value);
-      };
+    };
+
+    const handleCopiarSaldoAEnviar = () => {
+        const detallesTemp = detalles.map((detalle) => {
+            const saldo = Number(detalle.saldo);
+            return {
+                ...detalle,
+                enviar: saldo,
+                pendiente: 0
+            };
+        });
+        setDetalles([...detallesTemp]);
+    };
 
 
 
@@ -95,6 +139,7 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
                 icon: 'error',
                 title: 'Oops...',
                 text: 'No se ha seleccionado ninguna partida',
+                didOpen: configureSwalZIndex
               })
             return
         }
@@ -105,7 +150,8 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Si',
-            cancelButtonText: 'No'
+            cancelButtonText: 'No',
+            didOpen: configureSwalZIndex
           }).then(async(result) => {
             if (result.isConfirmed) {
                 const resp = await axios.post(url,data,{
@@ -117,6 +163,7 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
                         icon: 'success',
                         title: 'Envio parcial asignado',
                         text: `Envio ${envio.documento} asignado correctamente a ${embarque.operador.nombre}`,
+                        didOpen: configureSwalZIndex
                       }).then(()=>{
                         getData()
                       })
@@ -200,6 +247,16 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
                                     label="Age"
                                     onChange={handleChange}
                                     variant='standard'
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                zIndex: isFullscreen ? 13000 : undefined
+                                            }
+                                        },
+                                        style: {
+                                            zIndex: isFullscreen ? 13000 : undefined
+                                        }
+                                    }}
                                 >
                                     {
                                     transportes.map((transporte) => (
@@ -215,6 +272,19 @@ const AsignacionParcialForm = ({rowSelected, onCloseDialog, getData}) => {
                 {envio?.detalles &&
                     <Box component={"div"} sx={{display:'flex', flexDirection:"column",justifyContent:"space-between", margin:1}}>
                             <Box component={"div"}>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                                    <Tooltip title="Asignar el saldo completo a enviar para todas las partidas">
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<ContentCopyIcon />}
+                                            onClick={handleCopiarSaldoAEnviar}
+                                            disabled={detalles.length === 0}
+                                        >
+                                            Asignación total
+                                        </Button>
+                                    </Tooltip>
+                                </Box>
                                 <MaterialReactTable
                                     columns={columns}   
                                     data = {detalles}

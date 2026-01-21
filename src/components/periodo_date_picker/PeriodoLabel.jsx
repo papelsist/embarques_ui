@@ -5,7 +5,7 @@ import { ContextEmbarques } from '../../context/ContextEmbarques';
 
 import './PeriodoLabel.css'
 
-const PeriodoLabel = () => {
+const PeriodoLabel = ({ isFullscreen = false }) => {
 
     const {periodo, setPeriodo} = useContext(ContextEmbarques);
     const [openDialog, setOpenDialog] = useState(false);
@@ -41,7 +41,24 @@ const PeriodoLabel = () => {
                 Periodo del {periodo.fecha_inicial} al {periodo.fecha_final} 
                 <CalendarTodayIcon />  
              </div>
-              <Dialog open={openDialog} onClose={()=>{setOpenDialog(false)}}  >
+              <Dialog 
+                open={openDialog} 
+                onClose={()=>{setOpenDialog(false)}}
+                disablePortal={false}
+                container={isFullscreen ? document.body : undefined}
+                sx={{
+                    zIndex: isFullscreen ? 13000 : 1300,
+                    '& .MuiBackdrop-root': {
+                        zIndex: isFullscreen ? 12999 : 1300
+                    },
+                    '& .MuiDialog-container': {
+                        zIndex: isFullscreen ? 13000 : 1300
+                    },
+                    '& .MuiDialog-paper': {
+                        zIndex: isFullscreen ? 13000 : 1300
+                    }
+                }}
+              >
                 <div className='periodo__selector'>
                         <div className="periodo_selector__header">
                             <p> Seleccione un periodo:</p>

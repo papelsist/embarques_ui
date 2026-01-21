@@ -15,12 +15,13 @@ import { objectIsEmpty } from '../../../utils/embarqueUtils';
 
 const Asignaciones = () => {
 
-    const {auth,sucursal} = useContext(ContextEmbarques);
+    const {auth,sucursal,setLoading} = useContext(ContextEmbarques);
     const [openDialog, setOpenDialog] = useState(false);
     const [datos, setDatos] = useState([]);
     const navigate = useNavigate()      
 
     const getData = async() =>{
+        setLoading(true)
         if(objectIsEmpty(auth)){
             try{
                 const url = `${apiUrl.url}embarques/pendientes_salida`
@@ -29,12 +30,15 @@ const Asignaciones = () => {
                     headers: { Authorization: `Bearer ${auth.access}` }
                 } )
                 setDatos(resp.data)
+                console.log(resp.data); 
             }catch(error){
                 if(error.response?.status === 401){
                     localStorage.removeItem('auth')
                     setAuth({})
                     navigate("/login", {replace: true})
                 } 
+            }finally{
+                setLoading(false)
             }
         }else{
             console.log('No esta autenticado')

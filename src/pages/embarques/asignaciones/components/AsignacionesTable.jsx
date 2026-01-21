@@ -132,6 +132,7 @@ const AsignacionesTable = ({datos, getData}) => {
         for (let entrega of res.data.partidas) {
             ruta_list.push(entrega.envio)
         }
+        console.log(ruta_list)
         setRuta(ruta_list)
         setShowRuta(true)
     }
@@ -166,6 +167,8 @@ const AsignacionesTable = ({datos, getData}) => {
         },
         { accessorKey: 'comentario', header: 'Comentario'},
     ])
+  
+  
     return (
         <div className='contenedor-asignaciones-table' >
             <MaterialReactTable
@@ -234,13 +237,13 @@ const AsignacionesTable = ({datos, getData}) => {
                     sx: {
                       width: "100%",
                       maxWidth: "80rem",
-                      height:"80%" ,
-                      maxHeight:"70rem"
+                      height:"60vh" ,
+                      maxHeight:"60vh"
                     },
                   }}
             >
-                <Box>
-                   <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} />
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                   <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} /> 
                 </Box>            
             </Dialog>
 

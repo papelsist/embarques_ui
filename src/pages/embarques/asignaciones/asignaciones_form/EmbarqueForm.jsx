@@ -16,7 +16,7 @@ import { ContextEmbarques } from '../../../../context/ContextEmbarques';
 
 const EmbarqueForm = () => {
 
-    const{auth} = useContext(ContextEmbarques)
+    const{auth,setLoading} = useContext(ContextEmbarques)
     const navigate = useNavigate()
     const params = useParams()
     const [embarque, setEmbarque] = useState();
@@ -68,18 +68,25 @@ const EmbarqueForm = () => {
 
     const handleSalvar= async(e)=>{
         // prepara informacion para salvar el embarque con entregas y entregadet
-        const url = `${apiUrl.url}embarques/actualizar_embarque`
-        const partidas = buildPartidas()
-        const data = {
-          embarqueId: embarque.id,
-          cp : cp,
-          comentario : embarque.comentario,
-          operador: embarque.operador.id,
-          partidas: partidas
+        setLoading(true)
+        try{
+            const url = `${apiUrl.url}embarques/actualizar_embarque`
+            const partidas = buildPartidas()
+            const data = {
+              embarqueId: embarque.id,
+              cp : cp,
+              comentario : embarque.comentario,
+              operador: embarque.operador.id,
+              partidas: partidas
+            }
+            console.log(data)
+            const res = await axios.post(url,data, {headers: { Authorization: `Bearer ${auth.access}` }})  
+            navigate("/embarques/asignaciones")
+        }catch(error){
+            console.log(error)
+        }finally{
+            setLoading(false)
         }
-        console.log(data)
-        const res = await axios.post(url,data, {headers: { Authorization: `Bearer ${auth.access}` }})  
-        navigate("/embarques/asignaciones")
     }
 
     const buildPartidas = () =>{
