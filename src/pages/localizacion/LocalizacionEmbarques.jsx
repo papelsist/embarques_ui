@@ -3,7 +3,6 @@ import {ContextEmbarques} from '../../context/ContextEmbarques';
 import MapaLocalizacion from '../../components/mapa_localizacion/MapaLocalizacion';
 import { Button, Grid, Typography, List,ListItem, ListItemText,ListSubheader, Divider, ListItemAvatar, IconButton} from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import {hivemqConf} from '../../conf/hivemq_conf';
 import {apiUrl} from '../../conf/axios_instance'
 import { tiempoTranscurrido,formatDateTime } from '../../utils/dateUtils';
 import axios from 'axios';
