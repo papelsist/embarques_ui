@@ -325,9 +325,19 @@ const EnviosPendientesTable = ({datos, getData,setDatos}) => {
             <Dialog 
                 open={openDialog} 
                 onClose={onCloseDialog}
-                fullWidth={true}
-                maxWidth={'md'}
-                maxHeight={'md'}
+                fullWidth={false}
+                maxWidth={false}
+                PaperProps={{
+                    sx: {
+                        width: '50rem',
+                        maxWidth: '95vw',
+                        height: '70vh',
+                        minHeight: '70vh',
+                        maxHeight: '70vh',
+                        m: 2,
+                        overflow: 'hidden',
+                    },
+                }}
                 sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh'}}
             >
                 <AsignacionParcialForm rowSelected={rowSelection} onCloseDialog={onCloseDialog} getData={getData} />

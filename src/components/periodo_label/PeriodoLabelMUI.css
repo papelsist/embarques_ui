@@ -1,0 +1,71 @@
+.periodo__label:hover {
+    cursor: pointer;
+    color: #1876D1;
+}
+
+.periodo__container {
+    position: relative;
+    padding: 1rem;
+    font-size: 1rem;
+}
+
+.periodo__container:hover {
+    cursor: pointer;
+}
+
+.periodo__selector {
+    height: 10rem;
+    width: 30rem;
+    background-color: white;
+    margin: 1rem;
+}
+
+.periodo_selector__header {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.periodo_selector__body {
+    display: flex;
+    justify-content: space-around;
+}
+
+.periodo_selector__actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-around;
+}
+
+.periodo__input {
+    cursor: pointer;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    border-bottom: solid 1px lightgray;
+    font-size: 1.2rem;
+    font-family: Roboto;
+}
+
+.periodo_selector__actions-button {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    text-align: center;
+    font-size: 1rem;
+    margin: .3rem auto;
+    width: 35%;
+    padding: .5rem;
+    border-radius: 1.5rem;
+    color: gray;
+    border: 1px solid #1876D1;
+}
+
+.periodo_selector__actions-button:focus {
+    outline: none;
+    background: none;
+}
+
+.periodo_selector__actions-button:hover {
+    outline: none;
+    cursor: pointer;
+    color: white;
+    background-color: #1876D1;
+}

@@ -11,10 +11,10 @@ import { ContextEmbarques } from '../../context/ContextEmbarques';
 
 
 const ContenedorOutlet = styled.div`
-    display: fixed;
-    width:100vw;
-    height:90vh; 
-    padding:0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    box-sizing: border-box;
 `;
 
 const MainLayout = () => {

@@ -70,7 +70,7 @@ const EmbarquesLayout = () => {
   
     return (
         <div className='contenedor-embarques'>
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', width: '100%', height: '100%', minHeight: 0 }}>
         <CssBaseline />
 
         <Drawer
@@ -114,9 +114,22 @@ const EmbarquesLayout = () => {
             </List>
           </Box>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1,paddingLeft:3, paddingBottom:2 }}>
-        <Toolbar />
-                <Outlet />
+        <Box component="main" sx={{ 
+          flexGrow: 1, 
+          minWidth: 0,
+          minHeight: 0,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+          px: 1,
+          pb: 1
+        }}>
+          <Toolbar sx={{ flexShrink: 0 }} />
+          <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, width: '100%', overflow: 'auto' }}>
+            <Outlet />
+          </Box>
         </Box>
       </Box>
       <Dialog open={openDialogEmbarque} onClose={()=>{setOpenDialogEmbarque(false)}}  >
