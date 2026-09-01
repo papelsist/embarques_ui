@@ -14,7 +14,16 @@ const dedupeById = (items = []) => {
     });
 };
 
-const BuscadorOperador = ({ setFound, apiUrl, searchField, label }) => {
+const BuscadorOperador = ({
+    setFound,
+    apiUrl,
+    searchField,
+    label,
+    size = 'medium',
+    variant = 'standard',
+    fullWidth = false,
+    overlayZIndex,
+}) => {
     const { auth } = useContext(ContextEmbarques);
     const [value, setValue] = useState(null);
     const [inputValue, setInputValue] = useState('');
@@ -57,7 +66,7 @@ const BuscadorOperador = ({ setFound, apiUrl, searchField, label }) => {
 
     return (
         <Autocomplete
-            disablePortal
+            disablePortal={false}
             id="buscador_operador"
             options={options}
             loading={loading}
@@ -77,9 +86,23 @@ const BuscadorOperador = ({ setFound, apiUrl, searchField, label }) => {
                     ? 'Escribe al menos 2 caracteres'
                     : 'No hay información'
             }
-            sx={{ ml: 1, mr: 1 }}
+            sx={{ ml: variant === 'standard' ? 1 : 0, mr: variant === 'standard' ? 1 : 0, width: fullWidth ? '100%' : undefined }}
+            slotProps={{
+                popper: overlayZIndex
+                    ? {
+                          sx: { zIndex: overlayZIndex },
+                          style: { zIndex: overlayZIndex },
+                      }
+                    : {},
+            }}
             renderInput={(params) => (
-                <TextField {...params} label={label} variant="standard" />
+                <TextField
+                    {...params}
+                    label={label}
+                    variant={variant}
+                    size={size}
+                    fullWidth={fullWidth}
+                />
             )}
             onInputChange={(event, newInputValue, reason) => {
                 setInputValue(newInputValue);
