@@ -15,6 +15,16 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const PANEL_WIDTH = '35%';
 
+const panelIconButtonSx = {
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    minHeight: 48,
+    p: 1,
+};
+
+const panelIconFontSize = 'medium';
+
 const formatDireccion = (instruccion) => {
     if (!instruccion) return null;
     const partes = [
@@ -108,8 +118,8 @@ const EnvioDetalleLateral = ({
                                 </Typography>
                             )}
                         </Box>
-                        <IconButton onClick={onClose} size="small" aria-label="Cerrar">
-                            <CloseIcon />
+                        <IconButton onClick={onClose} size="medium" aria-label="Cerrar" sx={panelIconButtonSx}>
+                            <CloseIcon fontSize={panelIconFontSize} />
                         </IconButton>
                     </Box>
 

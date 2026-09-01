@@ -27,6 +27,16 @@ import { apiUrl } from '../../conf/axios_instance';
 
 const PANEL_WIDTH = '35%';
 
+const panelIconButtonSx = {
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    minHeight: 48,
+    p: 1,
+};
+
+const panelIconFontSize = 'medium';
+
 const nowIsoLocal = () => new Date().toISOString().replace('Z', '');
 
 const formatFechaHora = (value) => {
@@ -41,9 +51,9 @@ const formatFechaHora = (value) => {
 const StatusRow = ({ label, value }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flex: 1, minWidth: 0 }}>
         {value ? (
-            <CheckCircleOutlineIcon color="success" sx={{ fontSize: 16 }} />
+            <CheckCircleOutlineIcon color="success" sx={{ fontSize: 22 }} />
         ) : (
-            <HighlightOffIcon color="disabled" sx={{ fontSize: 16 }} />
+            <HighlightOffIcon color="disabled" sx={{ fontSize: 22 }} />
         )}
         <Typography variant="caption" color="text.secondary" noWrap>
             {label}: {value ? formatFechaHora(value) : 'Pendiente'}
@@ -59,13 +69,13 @@ const ControlRow = ({ children, action }) => (
             gap: 0.5,
             mt: 0.5,
             width: '100%',
-            minHeight: 34,
+            minHeight: 48,
         }}
     >
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>{children}</Box>
         <Box
             sx={{
-                width: 34,
+                width: 48,
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
@@ -330,8 +340,8 @@ const EmbarqueTransitoDetalleLateral = ({
                                 </Typography>
                             )}
                         </Box>
-                        <IconButton onClick={onClose} size="small" aria-label="Cerrar">
-                            <CloseIcon />
+                        <IconButton onClick={onClose} size="medium" aria-label="Cerrar" sx={panelIconButtonSx}>
+                            <CloseIcon fontSize={panelIconFontSize} />
                         </IconButton>
                     </Box>
 
@@ -382,12 +392,13 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                             <Tooltip title="Registrar arribo">
                                                                                 <span>
                                                                                     <IconButton
-                                                                                        size="small"
+                                                                                        size="medium"
                                                                                         color="success"
                                                                                         disabled={isSaving}
+                                                                                        sx={panelIconButtonSx}
                                                                                         onClick={() => handleRegistrarArribo(partida)}
                                                                                     >
-                                                                                        <FlightLandIcon fontSize="small" />
+                                                                                        <FlightLandIcon fontSize={panelIconFontSize} />
                                                                                     </IconButton>
                                                                                 </span>
                                                                             </Tooltip>
@@ -398,7 +409,7 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                         <StatusRow label="Arribo" value={partida.arribo} />
                                                                     ) : (
                                                                         <>
-                                                                            <HighlightOffIcon color="disabled" sx={{ fontSize: 16, mr: 0.75 }} />
+                                                                            <HighlightOffIcon color="disabled" sx={{ fontSize: 22, mr: 0.75 }} />
                                                                             <Typography variant="caption" color="text.secondary">
                                                                                 Arribo: Pendiente
                                                                             </Typography>
@@ -412,12 +423,13 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                             <Tooltip title="Registrar recepción">
                                                                                 <span>
                                                                                     <IconButton
-                                                                                        size="small"
+                                                                                        size="medium"
                                                                                         color="warning"
                                                                                         disabled={isSaving || !partida.arribo}
+                                                                                        sx={panelIconButtonSx}
                                                                                         onClick={() => handleRegistrarRecepcion(partida)}
                                                                                     >
-                                                                                        <AssignmentTurnedInIcon fontSize="small" />
+                                                                                        <AssignmentTurnedInIcon fontSize={panelIconFontSize} />
                                                                                     </IconButton>
                                                                                 </span>
                                                                             </Tooltip>
@@ -428,7 +440,7 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                         <StatusRow label="Recepción" value={partida.recepcion} />
                                                                     ) : (
                                                                         <>
-                                                                            <HighlightOffIcon color="disabled" sx={{ fontSize: 16, mr: 0.75 }} />
+                                                                            <HighlightOffIcon color="disabled" sx={{ fontSize: 22, mr: 0.75 }} />
                                                                             <Typography variant="caption" color="text.secondary">
                                                                                 Recepción: Pendiente
                                                                             </Typography>
@@ -437,7 +449,7 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                 </ControlRow>
 
                                                                 {recibiosBloqueados.has(partida.id) ? (
-                                                                    <Box sx={{ mt: 0.5, minHeight: 34, display: 'flex', alignItems: 'center' }}>
+                                                                    <Box sx={{ mt: 0.5, minHeight: 48, display: 'flex', alignItems: 'center' }}>
                                                                         <Typography variant="caption" color="text.secondary">
                                                                             Recibió: {partida.recibio}
                                                                         </Typography>
@@ -448,15 +460,16 @@ const EmbarqueTransitoDetalleLateral = ({
                                                                             <Tooltip title="Guardar quien recibió">
                                                                                 <span>
                                                                                     <IconButton
-                                                                                        size="small"
+                                                                                        size="medium"
                                                                                         color="primary"
                                                                                         disabled={
                                                                                             isSaving ||
                                                                                             !(partida.recibio || '').trim()
                                                                                         }
+                                                                                        sx={panelIconButtonSx}
                                                                                         onClick={() => handleGuardarRecibio(partida)}
                                                                                     >
-                                                                                        <SaveIcon sx={{ fontSize: 18 }} />
+                                                                                        <SaveIcon fontSize={panelIconFontSize} />
                                                                                     </IconButton>
                                                                                 </span>
                                                                             </Tooltip>
@@ -498,13 +511,13 @@ const EmbarqueTransitoDetalleLateral = ({
                                                 {!partida.arribo && (
                                                     <Tooltip title="Eliminar envío del embarque">
                                                         <IconButton
-                                                            size="small"
+                                                            size="medium"
                                                             color="error"
                                                             disabled={isSaving}
                                                             onClick={() => handleBorrarEntrega(partida)}
-                                                            sx={{ mt: 0.5, ml: 0.5 }}
+                                                            sx={{ ...panelIconButtonSx, mt: 0.5, ml: 0.5 }}
                                                         >
-                                                            <DeleteForeverIcon fontSize="small" />
+                                                            <DeleteForeverIcon fontSize={panelIconFontSize} />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}

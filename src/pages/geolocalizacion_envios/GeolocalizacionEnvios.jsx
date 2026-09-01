@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GeolocalizacionEnviosMap from './GeolocalizacionEnviosMap';
-import { Box, Typography, List, ListItem, ListItemText, Paper, Divider, CircularProgress, Dialog, IconButton, Tooltip, TextField, Checkbox, InputAdornment, Grid } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Paper, Divider, CircularProgress, Dialog, IconButton, Tooltip, TextField, Checkbox, InputAdornment, Grid, Button, FormControl, InputLabel, Select, MenuItem, Chip, Badge } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
@@ -14,9 +14,13 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InboxIcon from '@mui/icons-material/Inbox';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
+import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import Swal from 'sweetalert2';
 import { ContextEmbarques } from '../../context/ContextEmbarques';
 import { objectIsEmpty } from '../../utils/embarqueUtils';
@@ -31,10 +35,16 @@ import PeriodoLabelMUI from '../../components/periodo_label/PeriodoLabelMUI';
 import EnvioDetalleLateral from './EnvioDetalleLateral';
 import EmbarqueTransitoDetalleLateral from './EmbarqueTransitoDetalleLateral';
 import TransportesEnviosPendientes from '../embarques/envios_pendientes/components/TransportesEnviosPendientes';
+import BuscadorEnvioGeolocalizacionPanel from './BuscadorEnvioGeolocalizacionPanel';
+import MantenimientoEntrega from '../../components/mantenimiento_entrega/MantenimientoEntrega';
+import SeguimientoEnvio from '../embarques/components/SeguimientoEnvio';
+import { changeDateFormat, formatDate } from '../../utils/dateUtils';
 
 const PANEL_EMBARQUES = 0;
 const PANEL_TRANSITO = 1;
 const PANEL_REGRESOS = 2;
+const PANEL_ENVIOS = 0;
+const PANEL_ENVIOS_REASIGNADOS = 1;
 const PANEL_GAP = 1;
 
 const panelPaperSx = {
@@ -49,11 +59,100 @@ const panelPaperSx = {
     flexShrink: 0,
 };
 
+const panelIconButtonSx = {
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    minHeight: 48,
+    p: 1,
+};
+
+const panelIconFontSize = 'medium';
+
+const PANELES_DERECHO_NAV = [
+    { id: PANEL_EMBARQUES, title: 'Embarques', Icon: AssignmentIcon },
+    { id: PANEL_TRANSITO, title: 'Tránsito', Icon: LocalShippingIcon },
+    { id: PANEL_REGRESOS, title: 'Regresos', Icon: FlightLandIcon },
+];
+
+const PanelDerechoNav = ({ panelActivo, onCambiarPanel }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+        {PANELES_DERECHO_NAV.map(({ id, title, Icon }) => (
+            <Tooltip key={id} title={title}>
+                <IconButton
+                    size="medium"
+                    color={panelActivo === id ? 'primary' : 'default'}
+                    sx={{
+                        ...panelIconButtonSx,
+                        ...(panelActivo === id && { bgcolor: 'action.selected' }),
+                    }}
+                    onClick={() => onCambiarPanel(id)}
+                    aria-label={title}
+                    aria-current={panelActivo === id ? 'page' : undefined}
+                >
+                    <Icon fontSize={panelIconFontSize} />
+                </IconButton>
+            </Tooltip>
+        ))}
+    </Box>
+);
+
+const PANELES_IZQUIERDO_NAV = [
+    { id: PANEL_ENVIOS, title: 'Envíos', Icon: InboxIcon },
+    { id: PANEL_ENVIOS_REASIGNADOS, title: 'Reasignados', Icon: SwapHorizIcon },
+];
+
+const PanelIzquierdoNav = ({ panelActivo, onCambiarPanel }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+        {PANELES_IZQUIERDO_NAV.map(({ id, title, Icon }) => (
+            <Tooltip key={id} title={title}>
+                <IconButton
+                    size="medium"
+                    color={panelActivo === id ? 'primary' : 'default'}
+                    sx={{
+                        ...panelIconButtonSx,
+                        ...(panelActivo === id && { bgcolor: 'action.selected' }),
+                    }}
+                    onClick={() => onCambiarPanel(id)}
+                    aria-label={title}
+                    aria-current={panelActivo === id ? 'page' : undefined}
+                >
+                    <Icon fontSize={panelIconFontSize} />
+                </IconButton>
+            </Tooltip>
+        ))}
+    </Box>
+);
+
+const formatDireccionEnvio = (instruccion) => {
+    if (!instruccion) return 'Sin dirección';
+    const partes = [
+        instruccion.direccion_calle,
+        instruccion.direccion_numero_exterior,
+        instruccion.direccion_colonia,
+        instruccion.direccion_codigo_postal ? `C.P. ${instruccion.direccion_codigo_postal}` : null,
+        instruccion.direccion_municipio,
+        instruccion.direccion_estado,
+    ].filter(Boolean);
+    return partes.length ? partes.join(', ') : 'Sin dirección';
+};
+
+const formatFechaEnvio = (fecha) => {
+    if (!fecha) return null;
+    const datePart = String(fecha).split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return changeDateFormat(datePart);
+    }
+    return formatDate(fecha);
+};
+
 const GeolocalizacionEnvios = () => {
     const navigate = useNavigate();
     const containerRef = useRef(null);
-    const {sucursal, setLoading, auth, periodo, loading} = useContext(ContextEmbarques);
+    const {sucursal, sucursales, setLoading, auth, periodo, loading} = useContext(ContextEmbarques);
     const [envios, setEnvios] = useState([]);
+    const [enviosReasignados, setEnviosReasignados] = useState([]);
+    const [loadingReasignados, setLoadingReasignados] = useState(false);
     const [envioSeleccionado, setEnvioSeleccionado] = useState(null);
     const [openDialogAsignacion, setOpenDialogAsignacion] = useState(false);
     const [envioParaAsignar, setEnvioParaAsignar] = useState(null);
@@ -65,25 +164,46 @@ const GeolocalizacionEnvios = () => {
     const [embarquesRegresos, setEmbarquesRegresos] = useState([]);
     const [loadingRegresos, setLoadingRegresos] = useState(false);
     const [panelDerecho, setPanelDerecho] = useState(PANEL_EMBARQUES);
+    const [panelIzquierdo, setPanelIzquierdo] = useState(PANEL_ENVIOS);
     const [showRuta, setShowRuta] = useState(false);
     const [ruta, setRuta] = useState([]);
     const [openDialogEmbarque, setOpenDialogEmbarque] = useState(false);
     const [embarqueSeleccionado, setEmbarqueSeleccionado] = useState(null);
     const [openDialogCreateEmbarque, setOpenDialogCreateEmbarque] = useState(false);
     const [filtroEnvios, setFiltroEnvios] = useState('');
+    const [filtroEnviosReasignados, setFiltroEnviosReasignados] = useState('');
     const [enviosSeleccionados, setEnviosSeleccionados] = useState({});
+    const [enviosReasignadosSeleccionados, setEnviosReasignadosSeleccionados] = useState({});
+    const [origenAsignacionTotal, setOrigenAsignacionTotal] = useState(PANEL_ENVIOS);
     const [openDetalleEnvio, setOpenDetalleEnvio] = useState(false);
     const [envioDetalle, setEnvioDetalle] = useState(null);
     const [loadingEnvioDetalle, setLoadingEnvioDetalle] = useState(false);
     const [openDialogAsignacionTotal, setOpenDialogAsignacionTotal] = useState(false);
     const [openDetalleTransito, setOpenDetalleTransito] = useState(false);
     const [embarqueDetalleTransito, setEmbarqueDetalleTransito] = useState(null);
+    const [openDialogSucursalEntrega, setOpenDialogSucursalEntrega] = useState(false);
+    const [envioSucursalEntrega, setEnvioSucursalEntrega] = useState(null);
+    const [sucursalEntregaSeleccionada, setSucursalEntregaSeleccionada] = useState('');
+    const [guardandoSucursalEntrega, setGuardandoSucursalEntrega] = useState(false);
+    const [openDialogBuscador, setOpenDialogBuscador] = useState(false);
+    const [openDialogMantenimientoEntrega, setOpenDialogMantenimientoEntrega] = useState(false);
+    const [openDialogSeguimientoEnvio, setOpenDialogSeguimientoEnvio] = useState(false);
+    const [buscadorAsignacionSeleccion, setBuscadorAsignacionSeleccion] = useState({});
+
+    const dialogZIndexSx = {
+        zIndex: isFullscreen ? 13000 : 1300,
+        '& .MuiBackdrop-root': { zIndex: isFullscreen ? 12999 : 1300 },
+        '& .MuiDialog-container': { zIndex: isFullscreen ? 13000 : 1300 },
+        '& .MuiDialog-paper': { zIndex: isFullscreen ? 13000 : 1300 },
+    };
+
+    const overlayZIndex = isFullscreen ? 14000 : 1400;
 
     const getData = async () => {
         setLoading(true)
         if(objectIsEmpty(auth)){
            try{
-                const url = `${apiUrl.url}embarques/envios_pendientes` 
+                const url = `${apiUrl.url}embarques/envios_tablero_pendientes` 
                    
                 const resp = await axios.get(url, 
                     {params:{fecha_inicial:periodo.fecha_inicial, fecha_final: periodo.fecha_final,sucursal: sucursal.nombre },
@@ -181,31 +301,91 @@ const GeolocalizacionEnvios = () => {
         }
     };
 
+    const getEnviosReasignados = async () => {
+        if (!objectIsEmpty(auth)) return;
+        setLoadingReasignados(true);
+        try {
+            const url = `${apiUrl.url}embarques/envios_reasignados_pendientes`;
+            const resp = await axios.get(url, {
+                params: {
+                    fecha_inicial: periodo.fecha_inicial,
+                    fecha_final: periodo.fecha_final,
+                    sucursal_entrega: sucursal.nombre,
+                },
+                headers: { Authorization: `Bearer ${auth.access}` },
+            });
+            const data = resp.data || [];
+            setEnviosReasignados(data);
+            setEnviosReasignadosSeleccionados((prev) => {
+                const idsActuales = new Set(data.map((e) => e.id));
+                return Object.fromEntries(
+                    Object.entries(prev).filter(([id]) => idsActuales.has(Number(id)) || idsActuales.has(id))
+                );
+            });
+        } catch (error) {
+            if (error.response?.status === 401) {
+                navigate('../../login');
+            }
+            console.error('Error al obtener envíos reasignados:', error);
+        } finally {
+            setLoadingReasignados(false);
+        }
+    };
+
     useEffect(() => {
         getData()
+        getEnviosReasignados()
         getEmbarquesPendientes()
         getEmbarquesTransito()
         getEmbarquesRegresos()
     }, [periodo])
 
-    const enviosFiltrados = useMemo(() => {
-        const q = filtroEnvios.trim().toLowerCase();
-        if (!q) return envios;
-        return envios.filter((envio) => {
+    const filtrarEnviosPorCliente = (lista, filtro) => {
+        const q = filtro.trim().toLowerCase();
+        if (!q) return lista;
+        return lista.filter((envio) => {
             const destinatario = (envio.destinatario || '').toLowerCase();
             const deDestinatario = (envio.de_destinatario || '').toLowerCase();
             const contacto = (envio.instruccion?.contacto || '').toLowerCase();
             return destinatario.includes(q) || deDestinatario.includes(q) || contacto.includes(q);
         });
-    }, [envios, filtroEnvios]);
+    };
+
+    const enviosFiltrados = useMemo(
+        () => filtrarEnviosPorCliente(envios, filtroEnvios),
+        [envios, filtroEnvios]
+    );
+
+    const enviosReasignadosFiltrados = useMemo(
+        () => filtrarEnviosPorCliente(enviosReasignados, filtroEnviosReasignados),
+        [enviosReasignados, filtroEnviosReasignados]
+    );
 
     const cantidadSeleccionados = Object.keys(enviosSeleccionados).length;
+    const cantidadReasignadosSeleccionados = Object.keys(enviosReasignadosSeleccionados).length;
     const todosFiltradosSeleccionados = enviosFiltrados.length > 0 &&
         enviosFiltrados.every((envio) => enviosSeleccionados[envio.id]);
     const algunosFiltradosSeleccionados = enviosFiltrados.some((envio) => enviosSeleccionados[envio.id]);
+    const todosReasignadosFiltradosSeleccionados = enviosReasignadosFiltrados.length > 0 &&
+        enviosReasignadosFiltrados.every((envio) => enviosReasignadosSeleccionados[envio.id]);
+    const algunosReasignadosFiltradosSeleccionados = enviosReasignadosFiltrados.some(
+        (envio) => enviosReasignadosSeleccionados[envio.id]
+    );
 
     const handleToggleEnvioSeleccionado = (envioId) => {
         setEnviosSeleccionados((prev) => {
+            const next = { ...prev };
+            if (next[envioId]) {
+                delete next[envioId];
+            } else {
+                next[envioId] = true;
+            }
+            return next;
+        });
+    };
+
+    const handleToggleEnvioReasignadoSeleccionado = (envioId) => {
+        setEnviosReasignadosSeleccionados((prev) => {
             const next = { ...prev };
             if (next[envioId]) {
                 delete next[envioId];
@@ -232,8 +412,25 @@ const GeolocalizacionEnvios = () => {
         });
     };
 
+    const handleToggleTodosReasignadosFiltrados = () => {
+        setEnviosReasignadosSeleccionados((prev) => {
+            const next = { ...prev };
+            if (todosReasignadosFiltradosSeleccionados) {
+                enviosReasignadosFiltrados.forEach((envio) => {
+                    delete next[envio.id];
+                });
+            } else {
+                enviosReasignadosFiltrados.forEach((envio) => {
+                    next[envio.id] = true;
+                });
+            }
+            return next;
+        });
+    };
+
     const handleRefresh = () => {
         getData();
+        getEnviosReasignados();
         getEmbarquesPendientes();
         getEmbarquesTransito();
         getEmbarquesRegresos();
@@ -241,6 +438,10 @@ const GeolocalizacionEnvios = () => {
 
     const irPanelDerecho = (siguiente) => {
         setPanelDerecho(siguiente);
+    };
+
+    const irPanelIzquierdo = (siguiente) => {
+        setPanelIzquierdo(siguiente);
     };
 
     const validarRegresoEmbarque = (embarque) => {
@@ -385,6 +586,99 @@ const GeolocalizacionEnvios = () => {
         setOpenDialogAsignacion(true);
     }
 
+    const esEnvioCod = (envio) => (envio?.tipo_documento || '').toUpperCase() === 'COD';
+
+    const handleAbrirDialogSucursalEntrega = (envio) => {
+        if (esEnvioCod(envio)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Envío COD',
+                text: 'No se puede reasignar un envío COD; solo CON o CRE',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        const yaReasignado = Boolean(
+            envio.sucursal_entrega &&
+            envio.sucursal_entrega !== envio.sucursal
+        );
+        if (yaReasignado) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Envío reasignado',
+                text: 'Este envío ya está reasignado y no se puede reasignar nuevamente',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        setEnvioSucursalEntrega(envio);
+        setSucursalEntregaSeleccionada(envio.sucursal_entrega || '');
+        setOpenDialogSucursalEntrega(true);
+    };
+
+    const handleCerrarDialogSucursalEntrega = () => {
+        setOpenDialogSucursalEntrega(false);
+        setEnvioSucursalEntrega(null);
+        setSucursalEntregaSeleccionada('');
+        setGuardandoSucursalEntrega(false);
+    };
+
+    const handleGuardarSucursalEntrega = async () => {
+        if (!envioSucursalEntrega || !sucursalEntregaSeleccionada) {
+            return;
+        }
+        if (!objectIsEmpty(auth)) {
+            navigate('../../login');
+            return;
+        }
+        setGuardandoSucursalEntrega(true);
+        try {
+            const url = `${apiUrl.url}embarques/actualizar_sucursal_entrega/`;
+            await axios.put(
+                url,
+                {
+                    envio_id: envioSucursalEntrega.id,
+                    sucursal_entrega: sucursalEntregaSeleccionada,
+                },
+                { headers: { Authorization: `Bearer ${auth.access}` } }
+            );
+            setEnvios((prev) =>
+                prev.map((envio) =>
+                    envio.id === envioSucursalEntrega.id
+                        ? { ...envio, sucursal_entrega: sucursalEntregaSeleccionada }
+                        : envio
+                )
+            );
+            if (envioSeleccionado?.id === envioSucursalEntrega.id) {
+                setEnvioSeleccionado((prev) =>
+                    prev ? { ...prev, sucursal_entrega: sucursalEntregaSeleccionada } : prev
+                );
+            }
+            handleCerrarDialogSucursalEntrega();
+            getEnviosReasignados();
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucursal actualizada',
+                text: 'Se asignó la sucursal de entrega',
+                didOpen: configureSwalZIndex,
+            });
+        } catch (error) {
+            console.error('Error al actualizar sucursal entrega:', error);
+            if (error.response?.status === 401) {
+                navigate('../../login');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response?.data?.message || 'No se pudo actualizar la sucursal de entrega',
+                    didOpen: configureSwalZIndex,
+                });
+            }
+        } finally {
+            setGuardandoSucursalEntrega(false);
+        }
+    };
+
     const handleAbrirDetalleEnvio = async (envio) => {
         setOpenDetalleEnvio(true);
         setEnvioDetalle(envio);
@@ -417,21 +711,49 @@ const GeolocalizacionEnvios = () => {
         setLoadingEnvioDetalle(false);
     };
 
+    const handleBuscadorEnvioSeleccionadoMapa = (envio) => {
+        setEnvioSeleccionado(envio);
+        setPanelIzquierdo(PANEL_ENVIOS);
+    };
+
+    const handleBuscadorAsignacionParcial = (seleccion) => {
+        setOpenDialogBuscador(false);
+        setBuscadorAsignacionSeleccion(seleccion);
+        setOpenDialogAsignacion(true);
+    };
+
+    const handleBuscadorAsignacionTotal = (seleccion) => {
+        setOpenDialogBuscador(false);
+        setEnviosSeleccionados(seleccion);
+        setOrigenAsignacionTotal(PANEL_ENVIOS);
+        setOpenDialogAsignacionTotal(true);
+    };
+
     const handleCerrarDialogAsignacion = () => {
         setOpenDialogAsignacion(false);
         setEnvioParaAsignar(null);
+        setBuscadorAsignacionSeleccion({});
     }
 
-    const handleAbrirAsignacionTotal = () => {
-        if (Object.keys(enviosSeleccionados).length === 0) {
+    const handleAbrirAsignacionTotal = (origen = PANEL_ENVIOS) => {
+        const seleccion =
+            origen === PANEL_ENVIOS_REASIGNADOS
+                ? enviosReasignadosSeleccionados
+                : enviosSeleccionados;
+        if (Object.keys(seleccion).length === 0) {
             return;
         }
+        setOrigenAsignacionTotal(origen);
         setOpenDialogAsignacionTotal(true);
     };
 
     const handleAsignacionTotal = (transporte) => {
         setOpenDialogAsignacionTotal(false);
-        const enviosIds = Object.keys(enviosSeleccionados);
+        const seleccion =
+            origenAsignacionTotal === PANEL_ENVIOS_REASIGNADOS
+                ? enviosReasignadosSeleccionados
+                : enviosSeleccionados;
+        const enviosIds = Object.keys(seleccion);
         Swal.fire({
             title: 'Asignación total',
             text: `¿Asignar ${enviosIds.length} envío(s) al embarque ${transporte.documento} - ${transporte.operador?.nombre || ''}?`,
@@ -454,7 +776,11 @@ const GeolocalizacionEnvios = () => {
                         },
                         { headers: { Authorization: `Bearer ${auth.access}` } }
                     );
-                    setEnviosSeleccionados({});
+                    if (origenAsignacionTotal === PANEL_ENVIOS_REASIGNADOS) {
+                        setEnviosReasignadosSeleccionados({});
+                    } else {
+                        setEnviosSeleccionados({});
+                    }
                     handleRefresh();
                     Swal.fire({
                         icon: 'success',
@@ -695,6 +1021,166 @@ const GeolocalizacionEnvios = () => {
         });
     }
 
+    const renderListaEnvios = ({
+        lista,
+        seleccionados,
+        onToggleSeleccionado,
+        permitirSeleccionMapa = true,
+        mostrarOrigen = false,
+    }) => (
+        <List sx={{ p: 0 }}>
+            {lista.map((envio, index) => {
+                const isSelected = permitirSeleccionMapa && envioSeleccionado?.id === envio.id;
+                const isChecked = Boolean(seleccionados[envio.id]);
+                const tieneCoordenadas = envio.instruccion?.direccion_latitud && envio.instruccion?.direccion_longitud;
+                const direccion = formatDireccionEnvio(envio.instruccion);
+                const fechaEnvio = formatFechaEnvio(envio.fecha_documento);
+                const sucursalQueEntrega = envio.sucursal_entrega || envio.sucursal;
+                const esReasignado = Boolean(
+                    envio.sucursal_entrega &&
+                    envio.sucursal_entrega !== envio.sucursal
+                );
+                const esCod = esEnvioCod(envio);
+
+                return (
+                    <React.Fragment key={envio.id || index}>
+                        <ListItem
+                            button
+                            onClick={() => {
+                                if (permitirSeleccionMapa && tieneCoordenadas) {
+                                    setEnvioSeleccionado(envio);
+                                }
+                            }}
+                            sx={{
+                                flexDirection: 'row',
+                                alignItems: 'flex-start',
+                                py: 1.5,
+                                px: 1,
+                                backgroundColor: isSelected ? 'action.selected' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: 'action.hover',
+                                    cursor: permitirSeleccionMapa && tieneCoordenadas ? 'pointer' : 'default',
+                                },
+                                opacity: permitirSeleccionMapa ? (tieneCoordenadas ? 1 : 0.6) : 1,
+                            }}
+                        >
+                            <Checkbox
+                                size="small"
+                                checked={isChecked}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={() => onToggleSeleccionado(envio.id)}
+                                sx={{ mt: 0.25, p: 0.5 }}
+                            />
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <ListItemText
+                                    primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                                            <Typography variant="subtitle2" fontWeight="bold">
+                                                {envio.documento || 'Sin documento'}
+                                            </Typography>
+                                            {envio.tipo_documento && (
+                                                <Typography
+                                                    variant="subtitle2"
+                                                    color={esCod ? 'error.main' : 'text.secondary'}
+                                                >
+                                                    {envio.tipo_documento}
+                                                </Typography>
+                                            )}
+                                            {fechaEnvio && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {fechaEnvio}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    }
+                                    secondary={
+                                        <>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {envio.destinatario || 'Sin destinatario'}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{ display: 'block', mt: 0.5, wordBreak: 'break-word' }}
+                                            >
+                                                {direccion}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.75, flexWrap: 'wrap' }}>
+                                                {mostrarOrigen ? (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Origen: {envio.sucursal || 'N/A'}
+                                                    </Typography>
+                                                ) : (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Entrega: {sucursalQueEntrega || 'Sin sucursal'}
+                                                    </Typography>
+                                                )}
+                                                {esReasignado && (
+                                                    <Chip
+                                                        size="small"
+                                                        label="Reasignado"
+                                                        color="warning"
+                                                        variant="outlined"
+                                                        sx={{ height: 20, fontSize: '0.65rem' }}
+                                                    />
+                                                )}
+                                            </Box>
+                                        </>
+                                    }
+                                />
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', ml: 0.5, gap: 0.25 }}>
+                                <Tooltip title="Ver detalle">
+                                    <IconButton
+                                        size="medium"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAbrirDetalleEnvio(envio);
+                                        }}
+                                        sx={{ ...panelIconButtonSx, color: 'info.main', '&:hover': { backgroundColor: 'action.hover' } }}
+                                    >
+                                        <InfoOutlinedIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                </Tooltip>
+                                {!mostrarOrigen && !esReasignado && !esCod && (
+                                    <Tooltip title="Asignar sucursal entrega">
+                                        <IconButton
+                                            size="medium"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAbrirDialogSucursalEntrega(envio);
+                                            }}
+                                            sx={{
+                                                ...panelIconButtonSx,
+                                                color: 'text.secondary',
+                                                '&:hover': { backgroundColor: 'action.hover' },
+                                            }}
+                                        >
+                                            <SwapHorizIcon fontSize={panelIconFontSize} />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                                <Tooltip title="Asignar envío">
+                                    <IconButton
+                                        size="medium"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAbrirDialogAsignacion(envio);
+                                        }}
+                                        sx={{ ...panelIconButtonSx, color: 'primary.main', '&:hover': { backgroundColor: 'action.hover' } }}
+                                    >
+                                        <LocalShippingIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                        </ListItem>
+                        {index < lista.length - 1 && <Divider />}
+                    </React.Fragment>
+                );
+            })}
+        </List>
+    );
+
     return (
     <>
     <Box 
@@ -738,11 +1224,30 @@ const GeolocalizacionEnvios = () => {
                     </Box>
                 </Grid>
                 <Grid item xs={2} md={2}>
-                   
+                    <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {enviosReasignados.length > 0 && (
+                            <Tooltip title="Ver envíos reasignados">
+                                <Badge
+                                    badgeContent={enviosReasignados.length}
+                                    color="warning"
+                                    max={99}
+                                >
+                                    <Chip
+                                        size="small"
+                                        label="Reasignados"
+                                        color="warning"
+                                        variant="outlined"
+                                        icon={<SwapHorizIcon />}
+                                        onClick={() => irPanelIzquierdo(PANEL_ENVIOS_REASIGNADOS)}
+                                        sx={{ cursor: 'pointer' }}
+                                    />
+                                </Badge>
+                            </Tooltip>
+                        )}
+                    </Box>
                 </Grid>
                 <Grid item xs={2} md={2}>
                     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                        
                         <Tooltip title="Refrescar">
                             <span>
                                 <IconButton onClick={handleRefresh} disabled={loading || loadingEmbarques}>
@@ -762,199 +1267,210 @@ const GeolocalizacionEnvios = () => {
             
         </Paper>
         <Box sx={{ width: '100%', flex: 1, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'row', gap: PANEL_GAP, overflow: 'hidden' }}>
-                <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Paper 
-                        elevation={0} 
-                        sx={{ 
-                            height: '100%', 
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                            borderRadius: 2,
-                            border: '4px solid #fff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            width: '200%',
+                            height: '100%',
+                            transform: `translateX(-${(panelIzquierdo * 100) / 2}%)`,
+                            transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
+                            willChange: 'transform',
                         }}
                     >
-                        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                            <Typography variant="h6" component="h2">
-                                Envíos ({filtroEnvios ? `${enviosFiltrados.length}/${envios.length}` : envios.length})
-                            </Typography>
-                            <TextField
-                                size="small"
-                                fullWidth
-                                placeholder="Cliente"
-                                value={filtroEnvios}
-                                onChange={(e) => setFiltroEnvios(e.target.value)}
-                                sx={{ mt: 1.5 }}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <SearchIcon fontSize="small" color="action" />
-                                        </InputAdornment>
-                                    ),
-                                    endAdornment: filtroEnvios ? (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                size="small"
-                                                aria-label="Limpiar filtro"
-                                                onClick={() => setFiltroEnvios('')}
-                                                edge="end"
-                                            >
-                                                <ClearIcon fontSize="small" />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ) : null,
-                                }}
-                            />
-                            {envios.length > 0 && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, ml: -1, mr: -0.5 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Checkbox
-                                            size="small"
-                                            checked={todosFiltradosSeleccionados}
-                                            indeterminate={!todosFiltradosSeleccionados && algunosFiltradosSeleccionados}
-                                            onChange={handleToggleTodosFiltrados}
-                                            disabled={enviosFiltrados.length === 0}
-                                        />
-                                        <Typography variant="caption" color="text.secondary">
-                                            Seleccionar todos
+                        <Box sx={{ width: '50%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                            <Paper elevation={0} sx={panelPaperSx}>
+                                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="h6" component="h2">
+                                            Envíos ({filtroEnvios ? `${enviosFiltrados.length}/${envios.length}` : envios.length})
                                         </Typography>
+                                        <PanelIzquierdoNav panelActivo={panelIzquierdo} onCambiarPanel={irPanelIzquierdo} />
                                     </Box>
-                                    <Tooltip title="Asignación total">
-                                        <span>
-                                            <IconButton
-                                                size="small"
-                                                color="primary"
-                                                onClick={handleAbrirAsignacionTotal}
-                                                disabled={cantidadSeleccionados === 0}
-                                            >
-                                                <LocalShippingIcon fontSize="small" />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
+                                    <TextField
+                                        size="small"
+                                        fullWidth
+                                        placeholder="Cliente"
+                                        value={filtroEnvios}
+                                        onChange={(e) => setFiltroEnvios(e.target.value)}
+                                        sx={{ mt: 1.5 }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon fontSize="small" color="action" />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: filtroEnvios ? (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="medium"
+                                                        aria-label="Limpiar filtro"
+                                                        onClick={() => setFiltroEnvios('')}
+                                                        edge="end"
+                                                        sx={panelIconButtonSx}
+                                                    >
+                                                        <ClearIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ) : null,
+                                        }}
+                                    />
+                                    {envios.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, ml: -1, mr: -0.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={todosFiltradosSeleccionados}
+                                                    indeterminate={!todosFiltradosSeleccionados && algunosFiltradosSeleccionados}
+                                                    onChange={handleToggleTodosFiltrados}
+                                                    disabled={enviosFiltrados.length === 0}
+                                                />
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Seleccionar todos
+                                                </Typography>
+                                            </Box>
+                                            <Tooltip title="Asignación total">
+                                                <span>
+                                                    <IconButton
+                                                        size="medium"
+                                                        color="primary"
+                                                        sx={panelIconButtonSx}
+                                                        onClick={() => handleAbrirAsignacionTotal(PANEL_ENVIOS)}
+                                                        disabled={cantidadSeleccionados === 0}
+                                                    >
+                                                        <LocalShippingIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </Box>
+                                    )}
                                 </Box>
-                            )}
+                                <Box sx={{ flex: 1, overflow: 'auto' }}>
+                                    {loading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : envios.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos disponibles
+                                            </Typography>
+                                        </Box>
+                                    ) : enviosFiltrados.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos que coincidan con el filtro
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        renderListaEnvios({
+                                            lista: enviosFiltrados,
+                                            seleccionados: enviosSeleccionados,
+                                            onToggleSeleccionado: handleToggleEnvioSeleccionado,
+                                            permitirSeleccionMapa: true,
+                                            mostrarOrigen: false,
+                                        })
+                                    )}
+                                </Box>
+                            </Paper>
                         </Box>
-                        <Box sx={{ flex: 1, overflow: 'auto' }}>
-                            {loading ? (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                    <CircularProgress />
+                        <Box sx={{ width: '50%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                            <Paper elevation={0} sx={panelPaperSx}>
+                                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="h6" component="h2">
+                                            Reasignados ({filtroEnviosReasignados ? `${enviosReasignadosFiltrados.length}/${enviosReasignados.length}` : enviosReasignados.length})
+                                        </Typography>
+                                        <PanelIzquierdoNav panelActivo={panelIzquierdo} onCambiarPanel={irPanelIzquierdo} />
+                                    </Box>
+                                    <TextField
+                                        size="small"
+                                        fullWidth
+                                        placeholder="Cliente"
+                                        value={filtroEnviosReasignados}
+                                        onChange={(e) => setFiltroEnviosReasignados(e.target.value)}
+                                        sx={{ mt: 1.5 }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon fontSize="small" color="action" />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: filtroEnviosReasignados ? (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="medium"
+                                                        aria-label="Limpiar filtro"
+                                                        onClick={() => setFiltroEnviosReasignados('')}
+                                                        edge="end"
+                                                        sx={panelIconButtonSx}
+                                                    >
+                                                        <ClearIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ) : null,
+                                        }}
+                                    />
+                                    {enviosReasignados.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, ml: -1, mr: -0.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={todosReasignadosFiltradosSeleccionados}
+                                                    indeterminate={!todosReasignadosFiltradosSeleccionados && algunosReasignadosFiltradosSeleccionados}
+                                                    onChange={handleToggleTodosReasignadosFiltrados}
+                                                    disabled={enviosReasignadosFiltrados.length === 0}
+                                                />
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Seleccionar todos
+                                                </Typography>
+                                            </Box>
+                                            <Tooltip title="Asignación total">
+                                                <span>
+                                                    <IconButton
+                                                        size="medium"
+                                                        color="primary"
+                                                        sx={panelIconButtonSx}
+                                                        onClick={() => handleAbrirAsignacionTotal(PANEL_ENVIOS_REASIGNADOS)}
+                                                        disabled={cantidadReasignadosSeleccionados === 0}
+                                                    >
+                                                        <LocalShippingIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </Box>
+                                    )}
                                 </Box>
-                            ) : envios.length === 0 ? (
-                                <Box sx={{ p: 2, textAlign: 'center' }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        No hay envíos disponibles
-                                    </Typography>
+                                <Box sx={{ flex: 1, overflow: 'auto' }}>
+                                    {loadingReasignados ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : enviosReasignados.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos reasignados a esta sucursal
+                                            </Typography>
+                                        </Box>
+                                    ) : enviosReasignadosFiltrados.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos que coincidan con el filtro
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        renderListaEnvios({
+                                            lista: enviosReasignadosFiltrados,
+                                            seleccionados: enviosReasignadosSeleccionados,
+                                            onToggleSeleccionado: handleToggleEnvioReasignadoSeleccionado,
+                                            permitirSeleccionMapa: false,
+                                            mostrarOrigen: true,
+                                        })
+                                    )}
                                 </Box>
-                            ) : enviosFiltrados.length === 0 ? (
-                                <Box sx={{ p: 2, textAlign: 'center' }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        No hay envíos que coincidan con el filtro
-                                    </Typography>
-                                </Box>
-                            ) : (
-                                <List sx={{ p: 0 }}>
-                                    {enviosFiltrados.map((envio, index) => {
-                                        const isSelected = envioSeleccionado?.id === envio.id;
-                                        const isChecked = Boolean(enviosSeleccionados[envio.id]);
-                                        const tieneCoordenadas = envio.instruccion?.direccion_latitud && envio.instruccion?.direccion_longitud;
-                                        const direccion = envio.instruccion?.direccion_calle || 'Sin dirección';
-                                        
-                                        return (
-                                            <React.Fragment key={envio.id || index}>
-                                                <ListItem 
-                                                    button
-                                                    onClick={() => {
-                                                        if (tieneCoordenadas) {
-                                                            setEnvioSeleccionado(envio);
-                                                        }
-                                                    }}
-                                                    sx={{ 
-                                                        flexDirection: 'row',
-                                                        alignItems: 'flex-start',
-                                                        py: 1.5,
-                                                        px: 1,
-                                                        backgroundColor: isSelected ? 'action.selected' : 'transparent',
-                                                        '&:hover': {
-                                                            backgroundColor: 'action.hover',
-                                                            cursor: tieneCoordenadas ? 'pointer' : 'default'
-                                                        },
-                                                        opacity: tieneCoordenadas ? 1 : 0.6
-                                                    }}
-                                                >
-                                                    <Checkbox
-                                                        size="small"
-                                                        checked={isChecked}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        onChange={() => handleToggleEnvioSeleccionado(envio.id)}
-                                                        sx={{ mt: 0.25, p: 0.5 }}
-                                                    />
-                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                        <ListItemText
-                                                            primary={
-                                                                <Box>
-                                                                    <Typography variant="subtitle2" fontWeight="bold">
-                                                                        {envio.documento || 'Sin documento'}
-                                                                    </Typography>
-                                                                </Box>
-                                                            }
-                                                            secondary={
-                                                                <>
-                                                                    <Typography variant="body2" color="text.secondary">
-                                                                        {envio.destinatario || 'Sin destinatario'}
-                                                                    </Typography>
-                                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                                                                        {direccion}
-                                                                    </Typography>
-                                                                </>
-                                                            }
-                                                        />
-                                                    </Box>
-                                                    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', ml: 0.5 }}>
-                                                        <Tooltip title="Ver detalle">
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleAbrirDetalleEnvio(envio);
-                                                                }}
-                                                                sx={{
-                                                                    color: 'info.main',
-                                                                    '&:hover': {
-                                                                        backgroundColor: 'action.hover'
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <InfoOutlinedIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Asignar envío">
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleAbrirDialogAsignacion(envio);
-                                                                }}
-                                                                sx={{ 
-                                                                    color: 'primary.main',
-                                                                    '&:hover': {
-                                                                        backgroundColor: 'action.hover'
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <LocalShippingIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </ListItem>
-                                                {index < enviosFiltrados.length - 1 && <Divider />}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </List>
-                            )}
+                            </Paper>
                         </Box>
-                    </Paper>
+                    </Box>
                 </Box>
                 <Box
                     sx={{
@@ -997,10 +1513,65 @@ const GeolocalizacionEnvios = () => {
                             flexShrink: 0,
                         }}
                     >
-                        <Box sx={{ p: 1.5, height: '100%', boxSizing: 'border-box' }}>
-                            <Typography variant="subtitle2" fontWeight="bold">
-                                Panel inferior
-                            </Typography>
+                        <Box
+                            sx={{
+                                p: 1,
+                                height: '100%',
+                                boxSizing: 'border-box',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: { xs: 2, md: 4 },
+                            }}
+                        >
+                            <Tooltip title="Buscador de envío">
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25 }}>
+                                    <IconButton
+                                        size="medium"
+                                        color="primary"
+                                        sx={panelIconButtonSx}
+                                        onClick={() => setOpenDialogBuscador(true)}
+                                        aria-label="Buscador de envío"
+                                    >
+                                        <TroubleshootIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                        Buscador
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
+                            <Tooltip title="Mantenimiento de entrega">
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25 }}>
+                                    <IconButton
+                                        size="medium"
+                                        color="secondary"
+                                        sx={panelIconButtonSx}
+                                        onClick={() => setOpenDialogMantenimientoEntrega(true)}
+                                        aria-label="Mantenimiento de entrega"
+                                    >
+                                        <ManageHistoryIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                        Mant. entrega
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
+                            <Tooltip title="Seguimiento de envío">
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25 }}>
+                                    <IconButton
+                                        size="medium"
+                                        color="info"
+                                        sx={panelIconButtonSx}
+                                        onClick={() => setOpenDialogSeguimientoEnvio(true)}
+                                        aria-label="Seguimiento de envío"
+                                    >
+                                        <MonitorHeartIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                        Seguimiento
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
                         </Box>
                     </Paper>
                 </Box>
@@ -1024,21 +1595,15 @@ const GeolocalizacionEnvios = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <Tooltip title="Crear nuevo embarque">
                                         <IconButton
-                                            size="small"
+                                            size="medium"
                                             color="primary"
+                                            sx={panelIconButtonSx}
                                             onClick={() => setOpenDialogCreateEmbarque(true)}
                                         >
-                                            <AddIcon />
+                                            <AddIcon fontSize={panelIconFontSize} />
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Ver tránsito">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => irPanelDerecho(PANEL_TRANSITO)}
-                                        >
-                                            <ArrowForwardIcon />
-                                        </IconButton>
-                                    </Tooltip>
+                                    <PanelDerechoNav panelActivo={panelDerecho} onCambiarPanel={irPanelDerecho} />
                                 </Box>
                             </Box>
                             <Box sx={{ flex: 1, overflow: 'auto' }}>
@@ -1094,47 +1659,51 @@ const GeolocalizacionEnvios = () => {
                                                         />
                                                     </Box>
                                                     <Box 
-                                                        sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, ml: 1 }}
+                                                        sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, ml: 1 }}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         {embarque.partidas && embarque.partidas.length > 0 ? (
                                                             <>
                                                                 <Tooltip title="Dar salida">
                                                                     <IconButton
-                                                                        size="small"
+                                                                        size="medium"
                                                                         color="success"
+                                                                        sx={panelIconButtonSx}
                                                                         onClick={() => registrarSalida(embarque)}
                                                                     >
-                                                                        <FlightTakeoffIcon fontSize="small" />
+                                                                        <FlightTakeoffIcon fontSize={panelIconFontSize} />
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 <Tooltip title="Imprimir">
                                                                     <IconButton
-                                                                        size="small"
+                                                                        size="medium"
                                                                         color="secondary"
+                                                                        sx={panelIconButtonSx}
                                                                         onClick={() => imprimirAsignacion(embarque)}
                                                                     >
-                                                                        <PrintIcon fontSize="small" />
+                                                                        <PrintIcon fontSize={panelIconFontSize} />
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 <Tooltip title="Ver ruta">
                                                                     <IconButton
-                                                                        size="small"
+                                                                        size="medium"
                                                                         color="success"
+                                                                        sx={panelIconButtonSx}
                                                                         onClick={() => verRuta(embarque)}
                                                                     >
-                                                                        <RouteIcon fontSize="small" />
+                                                                        <RouteIcon fontSize={panelIconFontSize} />
                                                                     </IconButton>
                                                                 </Tooltip>
                                                             </>
                                                         ) : (
                                                             <Tooltip title="Eliminar embarque">
                                                                 <IconButton
-                                                                    size="small"
+                                                                    size="medium"
                                                                     color="error"
+                                                                    sx={panelIconButtonSx}
                                                                     onClick={() => borrarEmbarque(embarque)}
                                                                 >
-                                                                    <DeleteForeverIcon fontSize="small" />
+                                                                    <DeleteForeverIcon fontSize={panelIconFontSize} />
                                                                 </IconButton>
                                                             </Tooltip>
                                                         )}
@@ -1152,19 +1721,10 @@ const GeolocalizacionEnvios = () => {
                         <Box sx={{ width: `${100 / 3}%`, height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
                         <Paper elevation={0} sx={panelPaperSx}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Tooltip title="Ver embarques">
-                                    <IconButton size="small" onClick={() => irPanelDerecho(PANEL_EMBARQUES)}>
-                                        <ArrowBackIcon />
-                                    </IconButton>
-                                </Tooltip>
                                 <Typography variant="h6" component="h2">
                                     Tránsito ({embarquesTransito.length})
                                 </Typography>
-                                <Tooltip title="Ver regresos">
-                                    <IconButton size="small" onClick={() => irPanelDerecho(PANEL_REGRESOS)}>
-                                        <ArrowForwardIcon />
-                                    </IconButton>
-                                </Tooltip>
+                                <PanelDerechoNav panelActivo={panelDerecho} onCambiarPanel={irPanelDerecho} />
                             </Box>
                             <Box sx={{ flex: 1, overflow: 'auto' }}>
                                 {loadingTransito ? (
@@ -1210,12 +1770,13 @@ const GeolocalizacionEnvios = () => {
                                                             }
                                                         />
                                                     </Box>
-                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, ml: 1 }}>
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, ml: 1 }}>
                                                         {!(embarque.partidas?.length > 0) ? (
                                                             <Tooltip title="Eliminar embarque">
                                                                 <IconButton
-                                                                    size="small"
+                                                                    size="medium"
                                                                     color="error"
+                                                                    sx={panelIconButtonSx}
                                                                     onClick={() => {
                                                                         if (embarqueDetalleTransito?.id === embarque.id) {
                                                                             handleCerrarDetalleTransito();
@@ -1223,27 +1784,29 @@ const GeolocalizacionEnvios = () => {
                                                                         borrarEmbarque(embarque);
                                                                     }}
                                                                 >
-                                                                    <DeleteForeverIcon fontSize="small" />
+                                                                    <DeleteForeverIcon fontSize={panelIconFontSize} />
                                                                 </IconButton>
                                                             </Tooltip>
                                                         ) : (
                                                             <>
                                                                 <Tooltip title="Registrar regreso">
                                                                     <IconButton
-                                                                        size="small"
+                                                                        size="medium"
                                                                         color="success"
+                                                                        sx={panelIconButtonSx}
                                                                         onClick={() => registrarRegreso(embarque)}
                                                                     >
-                                                                        <FlightLandIcon fontSize="small" />
+                                                                        <FlightLandIcon fontSize={panelIconFontSize} />
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 <Tooltip title="Ver envíos">
                                                                     <IconButton
-                                                                        size="small"
+                                                                        size="medium"
                                                                         color="info"
+                                                                        sx={panelIconButtonSx}
                                                                         onClick={() => handleAbrirDetalleTransito(embarque)}
                                                                     >
-                                                                        <InfoOutlinedIcon fontSize="small" />
+                                                                        <InfoOutlinedIcon fontSize={panelIconFontSize} />
                                                                     </IconButton>
                                                                 </Tooltip>
                                                             </>
@@ -1262,15 +1825,10 @@ const GeolocalizacionEnvios = () => {
                         <Box sx={{ width: `${100 / 3}%`, height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
                         <Paper elevation={0} sx={panelPaperSx}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Tooltip title="Ver tránsito">
-                                    <IconButton size="small" onClick={() => irPanelDerecho(PANEL_TRANSITO)}>
-                                        <ArrowBackIcon />
-                                    </IconButton>
-                                </Tooltip>
-                                <Typography variant="h6" component="h2" sx={{ flex: 1, textAlign: 'center' }}>
+                                <Typography variant="h6" component="h2">
                                     Regresos ({embarquesRegresos.length})
                                 </Typography>
-                                <Box sx={{ width: 34 }} />
+                                <PanelDerechoNav panelActivo={panelDerecho} onCambiarPanel={irPanelDerecho} />
                             </Box>
                             <Box sx={{ flex: 1, overflow: 'auto' }}>
                                 {loadingRegresos ? (
@@ -1318,12 +1876,12 @@ const GeolocalizacionEnvios = () => {
                                                     </Box>
                                                     <Tooltip title="Imprimir asignación">
                                                         <IconButton
-                                                            size="small"
+                                                            size="medium"
                                                             color="secondary"
                                                             onClick={() => imprimirRegreso(embarque)}
-                                                            sx={{ ml: 1 }}
+                                                            sx={{ ...panelIconButtonSx, ml: 1 }}
                                                         >
-                                                            <PrintIcon fontSize="small" />
+                                                            <PrintIcon fontSize={panelIconFontSize} />
                                                         </IconButton>
                                                     </Tooltip>
                                                 </ListItem>
@@ -1352,6 +1910,78 @@ const GeolocalizacionEnvios = () => {
             onEntregaActualizada={handleEntregaActualizadaTransito}
             isFullscreen={isFullscreen}
         />
+        {openDialogSucursalEntrega && (
+            <Box
+                sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 13000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                    p: 2,
+                }}
+                onClick={handleCerrarDialogSucursalEntrega}
+            >
+                <Paper
+                    elevation={8}
+                    onClick={(e) => e.stopPropagation()}
+                    sx={{
+                        width: '100%',
+                        maxWidth: 360,
+                        p: 2.5,
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography variant="h6" sx={{ mb: 0.5 }}>
+                        Sucursal de entrega
+                    </Typography>
+                    {envioSucursalEntrega?.documento && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Documento: {envioSucursalEntrega.documento}
+                        </Typography>
+                    )}
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="sucursal-entrega-label">Sucursal</InputLabel>
+                        <Select
+                            labelId="sucursal-entrega-label"
+                            label="Sucursal"
+                            value={sucursalEntregaSeleccionada}
+                            onChange={(e) => setSucursalEntregaSeleccionada(e.target.value)}
+                            MenuProps={{
+                                disablePortal: false,
+                                sx: { zIndex: 14000 },
+                                style: { zIndex: 14000 },
+                            }}
+                        >
+                            {(sucursales || []).map((suc) => (
+                                <MenuItem key={suc.nombre} value={suc.nombre}>
+                                    {suc.nombre}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    {envioSucursalEntrega?.sucursal && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                            Sucursal origen: {envioSucursalEntrega.sucursal}
+                        </Typography>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2.5 }}>
+                        <Button onClick={handleCerrarDialogSucursalEntrega} disabled={guardandoSucursalEntrega}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleGuardarSucursalEntrega}
+                            disabled={!sucursalEntregaSeleccionada || guardandoSucursalEntrega}
+                        >
+                            {guardandoSucursalEntrega ? 'Guardando...' : 'Guardar'}
+                        </Button>
+                    </Box>
+                </Paper>
+            </Box>
+        )}
     </Box>
         <Dialog 
             open={openDialogAsignacion} 
@@ -1359,33 +1989,32 @@ const GeolocalizacionEnvios = () => {
             fullWidth={false}
             maxWidth={false}
             disablePortal={false}
-            container={document.body}
+            container={isFullscreen ? document.body : undefined}
             PaperProps={{
                 sx: {
                     width: '50rem',
                     maxWidth: '95vw',
-                    height: '70vh',
-                    minHeight: '70vh',
-                    maxHeight: '70vh',
+                    height: '75vh',
+                    minHeight: 480,
+                    maxHeight: '85vh',
                     m: 2,
                     overflow: 'hidden',
                 },
             }}
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                zIndex: isFullscreen ? 13000 : 1300,
-            }}
+            sx={dialogZIndexSx}
         >
-            {envioParaAsignar && (
+            {(envioParaAsignar || Object.keys(buscadorAsignacionSeleccion).length > 0) && (
                 <AsignacionParcialForm 
-                    rowSelected={{[envioParaAsignar.id]: true}} 
+                    rowSelected={
+                        Object.keys(buscadorAsignacionSeleccion).length > 0
+                            ? buscadorAsignacionSeleccion
+                            : { [envioParaAsignar.id]: true }
+                    }
                     onCloseDialog={handleCerrarDialogAsignacion} 
                     getData={handleRefresh}
                     isFullscreen={isFullscreen}
+                    variant="geolocalizacion"
+                    overlayZIndex={overlayZIndex}
                 />
             )}
         </Dialog>
@@ -1393,51 +2022,48 @@ const GeolocalizacionEnvios = () => {
             open={openDialogAsignacionTotal}
             onClose={() => setOpenDialogAsignacionTotal(false)}
             disablePortal={false}
-            container={document.body}
-            fullWidth
-            maxWidth="md"
+            container={isFullscreen ? document.body : undefined}
+            maxWidth={false}
             PaperProps={{
                 sx: {
-                    width: '100%',
-                    maxWidth: '50rem',
-                    height: '50vh',
-                    minHeight: '20rem',
-                    maxHeight: '40rem',
+                    width: 480,
+                    maxWidth: '95vw',
+                    m: 2,
+                    overflow: 'hidden',
                 },
             }}
-            sx={{
-                zIndex: isFullscreen ? 13000 : 1300,
-            }}
+            sx={dialogZIndexSx}
         >
-            <TransportesEnviosPendientes asignar={handleAsignacionTotal} />
+            <TransportesEnviosPendientes
+                variant="geolocalizacion"
+                asignar={handleAsignacionTotal}
+                onClose={() => setOpenDialogAsignacionTotal(false)}
+            />
         </Dialog>
         <Dialog 
             open={showRuta} 
             onClose={() => {setShowRuta(false)}}
-            fullWidth={true}
-            maxWidth={'xl'}
+            disablePortal={false}
+            container={isFullscreen ? document.body : undefined}
+            fullWidth
+            maxWidth="xl"
             PaperProps={{
                 sx: {
-                    width: "90%",
-                    maxWidth: "1300px",
-                    height: "60vh",
-                    maxHeight: "900px",
+                    width: '92%',
+                    maxWidth: '1200px',
+                    height: '72vh',
+                    minHeight: 480,
+                    maxHeight: '85vh',
+                    m: 2,
                     display: 'flex',
                     flexDirection: 'column',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
                 },
             }}
-            sx={{
-                zIndex: isFullscreen ? 13000 : 1300,
-                '& .MuiBackdrop-root': { zIndex: isFullscreen ? 12999 : 1300 },
-                '& .MuiDialog-paper': { 
-                    zIndex: isFullscreen ? 13000 : 1300,
-                    margin: '32px'
-                }
-            }}
+            sx={dialogZIndexSx}
         >
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} />
+                <RutaEmbarqueForm ruta={ruta} setShowRuta={setShowRuta} variant="geolocalizacion" />
             </Box>
         </Dialog>
         <Dialog 
@@ -1449,22 +2075,22 @@ const GeolocalizacionEnvios = () => {
             }}
             disablePortal={false}
             container={isFullscreen ? document.body : undefined}
-            fullWidth={true}
-            maxWidth={'lg'}
+            fullWidth
+            maxWidth="lg"
             PaperProps={{
                 sx: {
-                    width: "100%",
-                    maxWidth: "90rem",
-                    height: "90%",
-                    maxHeight: "80rem"
-                }
+                    width: '100%',
+                    maxWidth: '56rem',
+                    height: '80vh',
+                    minHeight: 520,
+                    maxHeight: '90vh',
+                    m: 2,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                },
             }}
-            sx={{
-                zIndex: isFullscreen ? 13000 : 1300,
-                '& .MuiBackdrop-root': { zIndex: isFullscreen ? 12999 : 1300 },
-                '& .MuiDialog-container': { zIndex: isFullscreen ? 13000 : 1300 },
-                '& .MuiDialog-paper': { zIndex: isFullscreen ? 13000 : 1300 }
-            }}
+            sx={dialogZIndexSx}
         >
             {embarqueSeleccionado && (
                 <EmbarqueLocalizacionForm 
@@ -1473,6 +2099,7 @@ const GeolocalizacionEnvios = () => {
                     getData={handleRefresh}
                     isFullscreen={isFullscreen}
                     handleRefresh={handleRefresh}
+                    overlayZIndex={overlayZIndex}
                 />
             )}
         </Dialog>
@@ -1481,17 +2108,94 @@ const GeolocalizacionEnvios = () => {
             onClose={() => {setOpenDialogCreateEmbarque(false)}}
             disablePortal={false}
             container={isFullscreen ? document.body : undefined}
-            maxWidth={'md'}
-            sx={{
-                zIndex: isFullscreen ? 13000 : 1300,
-                '& .MuiBackdrop-root': { zIndex: isFullscreen ? 12999 : 1300 },
-                '& .MuiDialog-container': { zIndex: isFullscreen ? 13000 : 1300 },
-                '& .MuiDialog-paper': { zIndex: isFullscreen ? 13000 : 1300 }
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: 420,
+                    maxWidth: '95vw',
+                    m: 2,
+                    overflow: 'hidden',
+                },
             }}
+            sx={dialogZIndexSx}
         >
             <CreateEmbarqueForm 
                 setOpenDialog={setOpenDialogCreateEmbarque} 
                 getData={handleRefresh}
+                variant="geolocalizacion"
+                isFullscreen={isFullscreen}
+                overlayZIndex={overlayZIndex}
+            />
+        </Dialog>
+        <Dialog
+            open={openDialogBuscador}
+            onClose={() => setOpenDialogBuscador(false)}
+            disablePortal={false}
+            container={isFullscreen ? document.body : undefined}
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: 420,
+                    maxWidth: '95vw',
+                    m: 2,
+                    overflow: 'hidden',
+                },
+            }}
+            sx={dialogZIndexSx}
+        >
+            <BuscadorEnvioGeolocalizacionPanel
+                overlayZIndex={overlayZIndex}
+                onClose={() => setOpenDialogBuscador(false)}
+                onEnvioSeleccionadoMapa={handleBuscadorEnvioSeleccionadoMapa}
+                onAsignacionParcial={handleBuscadorAsignacionParcial}
+                onAsignacionTotal={handleBuscadorAsignacionTotal}
+            />
+        </Dialog>
+        <Dialog
+            open={openDialogMantenimientoEntrega}
+            onClose={() => setOpenDialogMantenimientoEntrega(false)}
+            disablePortal={false}
+            container={isFullscreen ? document.body : undefined}
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: 420,
+                    maxWidth: '95vw',
+                    height: 520,
+                    minHeight: 520,
+                    maxHeight: 520,
+                    m: 2,
+                    overflow: 'hidden',
+                },
+            }}
+            sx={dialogZIndexSx}
+        >
+            <MantenimientoEntrega
+                setOpenDialog={setOpenDialogMantenimientoEntrega}
+                onSaved={handleRefresh}
+            />
+        </Dialog>
+        <Dialog
+            open={openDialogSeguimientoEnvio}
+            onClose={() => setOpenDialogSeguimientoEnvio(false)}
+            disablePortal={false}
+            container={isFullscreen ? document.body : undefined}
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: 600,
+                    maxWidth: '95vw',
+                    height: 520,
+                    maxHeight: '85vh',
+                    m: 2,
+                    overflow: 'hidden',
+                },
+            }}
+            sx={dialogZIndexSx}
+        >
+            <SeguimientoEnvio
+                setOpenDialogSeguimiento={setOpenDialogSeguimientoEnvio}
+                overlayZIndex={overlayZIndex}
             />
         </Dialog>
     </>

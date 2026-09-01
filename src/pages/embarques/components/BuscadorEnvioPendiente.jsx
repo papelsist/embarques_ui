@@ -31,9 +31,11 @@ const BuscadorEnvioPendiente = ({onCloseDialog, onOpenDialog, setRowSelection, s
 
         const response = await axios.get(url, {params})
         console.log(response.data);
-        if(response.data.envio.id){
-            setEnvio(response.data.envio)
-            setRow(response.data.envio.id)
+        const lista = response.data?.envios || [];
+        const envioEncontrado = lista[0] || response.data?.envio;
+        if(envioEncontrado?.id){
+            setEnvio(envioEncontrado)
+            setRow(envioEncontrado.id)
             setMessage(null)
         }else{
             setEnvio(null)

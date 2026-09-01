@@ -8,6 +8,35 @@ import axios from 'axios';
 import { LogoIcon, TruckIcon,OfficeIcon } from '../../components/map/iconos_mapa';
 
 // Componente para controlar el centro del mapa
+
+const ancho = 20;
+const alto = 30;
+
+const clienteIcono = L.divIcon({
+    className: 'custom-client-marker',
+    html: `
+      <svg width="${ancho}" height="${alto}" viewBox="0 0 36 46" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));">
+        <!-- Cuerpo exterior del Pin -->
+        <path d="M18 0C8.05887 0 0 8.05887 0 18C0 31.5 18 46 18 46C18 46 36 31.5 36 18C36 8.05887 27.9411 0 18 0Z" 
+              fill="#FF0055" 
+              stroke="#FFFFFF" 
+              stroke-width="3" 
+              stroke-linejoin="round"/>
+        
+        <!-- Círculo interior blanco -->
+        <circle cx="18" cy="18" r="9" fill="#FFFFFF"/>
+        
+        <!-- Punto central de precisión -->
+        <circle cx="18" cy="18" r="4.5" fill="#111111"/>
+      </svg>
+    `,
+    iconSize: [ancho, alto],
+    iconAnchor: [ancho / 2, alto],      // La punta inferior apunta a la coordenada exacta
+    popupAnchor: [0, -alto]             // El popup se despliega arriba del pin
+  });
+
+
+
 const MapController = ({ center, zoom = 12 }) => {
     const map = useMap();
     useEffect(() => {
@@ -193,7 +222,7 @@ const GeolocalizacionEnviosMap = ({sucursal, envios, envioSeleccionado, onCentra
                                 <Marker
                                     key={envio.id || envio.factura}
                                     position={[envio.instruccion.direccion_latitud, envio.instruccion.direccion_longitud]}
-                                    icon={OfficeIcon}
+                                    icon={clienteIcono}
                                 >
                                     <Popup>
                                         <PopupContent envio={envio} onAsignarEnvio={onAsignarEnvio} />
