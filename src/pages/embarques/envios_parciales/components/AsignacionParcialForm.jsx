@@ -34,6 +34,21 @@ const FORM_HEIGHT = '70vh';
 const TABLE_HEIGHT = '22rem';
 const TABLE_HEIGHT_GEO = '18rem';
 
+const esPartidaAsignable = (detalle) => (
+    detalle?.activo !== false && !detalle?.reasignada && Number(detalle?.saldo) > 0
+);
+
+const mapDetallesAsignacion = (detalles = []) => detalles.map((detalle) => {
+    const asignable = esPartidaAsignable(detalle);
+    const saldo = asignable ? Number(detalle.saldo) : 0;
+    return {
+        ...detalle,
+        saldo,
+        enviar: 0,
+        pendiente: saldo,
+    };
+});
+
 const AsignacionParcialForm = ({
     rowSelected,
     onCloseDialog,
@@ -91,7 +106,7 @@ const AsignacionParcialForm = ({
         });
         setEnvio(resp.data);
         if (resp.data?.detalles) {
-            setDetalles(resp.data.detalles);
+            setDetalles(mapDetallesAsignacion(resp.data.detalles));
         }
     };
 
@@ -113,6 +128,13 @@ const AsignacionParcialForm = ({
 
     const handleCopiarSaldoAEnviar = () => {
         const detallesTemp = detalles.map((detalle) => {
+            if (!esPartidaAsignable(detalle)) {
+                return {
+                    ...detalle,
+                    enviar: 0,
+                    pendiente: 0,
+                };
+            }
             const saldo = Number(detalle.saldo);
             return {
                 ...detalle,
@@ -126,7 +148,7 @@ const AsignacionParcialForm = ({
     const handleAgregar = async () => {
         setLoading(true);
 
-        const partidas = detalles.filter((detalle) => detalle.enviar);
+        const partidas = detalles.filter((detalle) => detalle.enviar && esPartidaAsignable(detalle));
         const url = `${apiUrl.url}embarques/asignar_envios_parciales`;
         const data = {
             embarque_id: embarque.id,
@@ -215,6 +237,16 @@ const AsignacionParcialForm = ({
                 header: 'Descripcion',
                 size: 200,
                 enableEditing: () => false,
+                Cell: ({ row }) => (
+                    <Box>
+                        <Typography variant="body2">{row.original.me_descripcion}</Typography>
+                        {row.original.reasignada && row.original.sucursal_reasignacion && (
+                            <Typography variant="caption" color="warning.main" display="block">
+                                Reasignada a {row.original.sucursal_reasignacion}
+                            </Typography>
+                        )}
+                    </Box>
+                ),
             },
             {
                 accessorKey: 'me_cantidad',
@@ -233,7 +265,7 @@ const AsignacionParcialForm = ({
                 header: 'Enviar',
                 id: 'enviar',
                 size: 80,
-                enableEditing: (row) => row.original.saldo > 0,
+                enableEditing: (row) => esPartidaAsignable(row.original),
             },
             {
                 accessorKey: 'pendiente',
@@ -288,6 +320,11 @@ const AsignacionParcialForm = ({
                     columns={columns}
                     data={detalles}
                     getRowId={(originalRow) => originalRow.id}
+                    muiTableBodyRowProps={({ row }) => ({
+                        sx: {
+                            opacity: esPartidaAsignable(row.original) ? 1 : 0.55,
+                        },
+                    })}
                     initialState={{
                         density: 'compact',
                         size: 'small',

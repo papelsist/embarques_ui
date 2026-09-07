@@ -14,6 +14,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import LocationOffIcon from '@mui/icons-material/LocationOff';
 import InboxIcon from '@mui/icons-material/Inbox';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -21,6 +22,8 @@ import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import CallSplitIcon from '@mui/icons-material/CallSplit';
+import UndoIcon from '@mui/icons-material/Undo';
 import Swal from 'sweetalert2';
 import { ContextEmbarques } from '../../context/ContextEmbarques';
 import { objectIsEmpty } from '../../utils/embarqueUtils';
@@ -45,7 +48,41 @@ const PANEL_TRANSITO = 1;
 const PANEL_REGRESOS = 2;
 const PANEL_ENVIOS = 0;
 const PANEL_ENVIOS_REASIGNADOS = 1;
+const PANEL_ENVIOS_HIJOS_REASIGNADOS = 2;
+const PANEL_IZQUIERDO_TOTAL = 3;
+const PANEL_DERECHO_TOTAL = 3;
 const PANEL_GAP = 1;
+
+const PANEL_TRANSITION_MS = 620;
+const PANEL_TRANSITION_EASING = 'cubic-bezier(0.33, 0.72, 0.42, 1)';
+
+const panelViewportSx = {
+    position: 'relative',
+    flex: 1,
+    minWidth: 0,
+    minHeight: 0,
+    height: '100%',
+    overflow: 'hidden',
+};
+
+const getPanelSlotSx = (index, activeIndex) => {
+    const isActive = index === activeIndex;
+    const offset = isActive ? 0 : index < activeIndex ? -18 : 18;
+    return {
+        position: 'absolute',
+        inset: 0,
+        opacity: isActive ? 1 : 0,
+        transform: `translate3d(${offset}px, 0, 0)`,
+        transition: `opacity ${PANEL_TRANSITION_MS}ms ${PANEL_TRANSITION_EASING}, transform ${PANEL_TRANSITION_MS}ms ${PANEL_TRANSITION_EASING}`,
+        pointerEvents: isActive ? 'auto' : 'none',
+        zIndex: isActive ? 2 : 1,
+        willChange: isActive ? 'opacity, transform' : 'auto',
+        '@media (prefers-reduced-motion: reduce)': {
+            transform: 'none',
+            transition: `opacity ${PANEL_TRANSITION_MS * 0.6}ms ease`,
+        },
+    };
+};
 
 const panelPaperSx = {
     height: '100%',
@@ -67,6 +104,25 @@ const panelIconButtonSx = {
     p: 1,
 };
 
+const panelNavIconButtonSx = (isActive) => ({
+    ...panelIconButtonSx,
+    transition: 'background-color 0.28s ease, color 0.28s ease, transform 0.22s cubic-bezier(0.33, 0.72, 0.42, 1), box-shadow 0.28s ease',
+    ...(isActive && {
+        bgcolor: 'action.selected',
+        boxShadow: 'inset 0 0 0 1px rgba(25, 118, 210, 0.18)',
+    }),
+    '&:hover': {
+        transform: 'scale(1.06)',
+    },
+    '&:active': {
+        transform: 'scale(0.94)',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+        transform: 'none',
+        '&:hover, &:active': { transform: 'none' },
+    },
+});
+
 const panelIconFontSize = 'medium';
 
 const PANELES_DERECHO_NAV = [
@@ -82,10 +138,7 @@ const PanelDerechoNav = ({ panelActivo, onCambiarPanel }) => (
                 <IconButton
                     size="medium"
                     color={panelActivo === id ? 'primary' : 'default'}
-                    sx={{
-                        ...panelIconButtonSx,
-                        ...(panelActivo === id && { bgcolor: 'action.selected' }),
-                    }}
+                    sx={panelNavIconButtonSx(panelActivo === id)}
                     onClick={() => onCambiarPanel(id)}
                     aria-label={title}
                     aria-current={panelActivo === id ? 'page' : undefined}
@@ -100,6 +153,7 @@ const PanelDerechoNav = ({ panelActivo, onCambiarPanel }) => (
 const PANELES_IZQUIERDO_NAV = [
     { id: PANEL_ENVIOS, title: 'Envíos', Icon: InboxIcon },
     { id: PANEL_ENVIOS_REASIGNADOS, title: 'Reasignados', Icon: SwapHorizIcon },
+    { id: PANEL_ENVIOS_HIJOS_REASIGNADOS, title: 'Enviados a otra sucursal', Icon: CallSplitIcon },
 ];
 
 const PanelIzquierdoNav = ({ panelActivo, onCambiarPanel }) => (
@@ -109,10 +163,7 @@ const PanelIzquierdoNav = ({ panelActivo, onCambiarPanel }) => (
                 <IconButton
                     size="medium"
                     color={panelActivo === id ? 'primary' : 'default'}
-                    sx={{
-                        ...panelIconButtonSx,
-                        ...(panelActivo === id && { bgcolor: 'action.selected' }),
-                    }}
+                    sx={panelNavIconButtonSx(panelActivo === id)}
                     onClick={() => onCambiarPanel(id)}
                     aria-label={title}
                     aria-current={panelActivo === id ? 'page' : undefined}
@@ -146,6 +197,16 @@ const formatFechaEnvio = (fecha) => {
     return formatDate(fecha);
 };
 
+const esCoordenadaValida = (valor) => {
+    if (valor === null || valor === undefined || valor === '') return false;
+    const numero = Number(valor);
+    return Number.isFinite(numero) && numero !== 0;
+};
+
+const instruccionTieneCoordenadas = (instruccion) => (
+    esCoordenadaValida(instruccion?.direccion_latitud) && esCoordenadaValida(instruccion?.direccion_longitud)
+);
+
 const GeolocalizacionEnvios = () => {
     const navigate = useNavigate();
     const containerRef = useRef(null);
@@ -153,6 +214,14 @@ const GeolocalizacionEnvios = () => {
     const [envios, setEnvios] = useState([]);
     const [enviosReasignados, setEnviosReasignados] = useState([]);
     const [loadingReasignados, setLoadingReasignados] = useState(false);
+    const [enviosHijosReasignados, setEnviosHijosReasignados] = useState([]);
+    const [loadingHijosReasignados, setLoadingHijosReasignados] = useState(false);
+    const [filtroEnviosHijosReasignados, setFiltroEnviosHijosReasignados] = useState('');
+    const [enviosHijosReasignadosSeleccionados, setEnviosHijosReasignadosSeleccionados] = useState({});
+    const [openDialogReasignarHijo, setOpenDialogReasignarHijo] = useState(false);
+    const [envioHijoReasignar, setEnvioHijoReasignar] = useState(null);
+    const [sucursalDestinoHijo, setSucursalDestinoHijo] = useState('');
+    const [guardandoDestinoHijo, setGuardandoDestinoHijo] = useState(false);
     const [envioSeleccionado, setEnvioSeleccionado] = useState(null);
     const [openDialogAsignacion, setOpenDialogAsignacion] = useState(false);
     const [envioParaAsignar, setEnvioParaAsignar] = useState(null);
@@ -185,10 +254,14 @@ const GeolocalizacionEnvios = () => {
     const [envioSucursalEntrega, setEnvioSucursalEntrega] = useState(null);
     const [sucursalEntregaSeleccionada, setSucursalEntregaSeleccionada] = useState('');
     const [guardandoSucursalEntrega, setGuardandoSucursalEntrega] = useState(false);
+    const [partidasReasignacion, setPartidasReasignacion] = useState([]);
+    const [partidasReasignacionSeleccionadas, setPartidasReasignacionSeleccionadas] = useState({});
+    const [loadingPartidasReasignacion, setLoadingPartidasReasignacion] = useState(false);
     const [openDialogBuscador, setOpenDialogBuscador] = useState(false);
     const [openDialogMantenimientoEntrega, setOpenDialogMantenimientoEntrega] = useState(false);
     const [openDialogSeguimientoEnvio, setOpenDialogSeguimientoEnvio] = useState(false);
     const [buscadorAsignacionSeleccion, setBuscadorAsignacionSeleccion] = useState({});
+    const [geocodificandoEnvioId, setGeocodificandoEnvioId] = useState(null);
 
     const dialogZIndexSx = {
         zIndex: isFullscreen ? 13000 : 1300,
@@ -332,9 +405,34 @@ const GeolocalizacionEnvios = () => {
         }
     };
 
+    const getEnviosHijosReasignados = async () => {
+        if (!objectIsEmpty(auth)) return;
+        setLoadingHijosReasignados(true);
+        try {
+            const url = `${apiUrl.url}embarques/envios_hijos_reasignados_salida`;
+            const resp = await axios.get(url, {
+                params: {
+                    fecha_inicial: periodo.fecha_inicial,
+                    fecha_final: periodo.fecha_final,
+                    sucursal: sucursal.nombre,
+                },
+                headers: { Authorization: `Bearer ${auth.access}` },
+            });
+            setEnviosHijosReasignados(resp.data || []);
+        } catch (error) {
+            if (error.response?.status === 401) {
+                navigate('../../login');
+            }
+            console.error('Error al obtener envíos hijos reasignados:', error);
+        } finally {
+            setLoadingHijosReasignados(false);
+        }
+    };
+
     useEffect(() => {
         getData()
         getEnviosReasignados()
+        getEnviosHijosReasignados()
         getEmbarquesPendientes()
         getEmbarquesTransito()
         getEmbarquesRegresos()
@@ -360,6 +458,185 @@ const GeolocalizacionEnvios = () => {
         () => filtrarEnviosPorCliente(enviosReasignados, filtroEnviosReasignados),
         [enviosReasignados, filtroEnviosReasignados]
     );
+
+    const enviosHijosReasignadosFiltrados = useMemo(
+        () => filtrarEnviosPorCliente(enviosHijosReasignados, filtroEnviosHijosReasignados),
+        [enviosHijosReasignados, filtroEnviosHijosReasignados]
+    );
+
+    const cantidadHijosReasignadosSeleccionados = Object.keys(enviosHijosReasignadosSeleccionados).length;
+    const enviosHijosGestionablesFiltrados = useMemo(
+        () => enviosHijosReasignadosFiltrados.filter((envio) => !envio.tiene_asignaciones),
+        [enviosHijosReasignadosFiltrados]
+    );
+    const todosHijosFiltradosSeleccionados = enviosHijosGestionablesFiltrados.length > 0 &&
+        enviosHijosGestionablesFiltrados.every((envio) => enviosHijosReasignadosSeleccionados[envio.id]);
+    const algunosHijosFiltradosSeleccionados = enviosHijosGestionablesFiltrados.some(
+        (envio) => enviosHijosReasignadosSeleccionados[envio.id]
+    );
+
+    const handleToggleEnvioHijoReasignadoSeleccionado = (envioId) => {
+        setEnviosHijosReasignadosSeleccionados((prev) => {
+            const next = { ...prev };
+            if (next[envioId]) {
+                delete next[envioId];
+            } else {
+                next[envioId] = true;
+            }
+            return next;
+        });
+    };
+
+    const handleToggleTodosHijosFiltrados = () => {
+        setEnviosHijosReasignadosSeleccionados((prev) => {
+            const next = { ...prev };
+            if (todosHijosFiltradosSeleccionados) {
+                enviosHijosGestionablesFiltrados.forEach((envio) => {
+                    delete next[envio.id];
+                });
+            } else {
+                enviosHijosGestionablesFiltrados.forEach((envio) => {
+                    next[envio.id] = true;
+                });
+            }
+            return next;
+        });
+    };
+
+    const handleAbrirDialogReasignarHijo = (envio) => {
+        if (envio.tiene_asignaciones) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Envío asignado',
+                text: 'No se puede cambiar el destino porque el envío ya tiene asignaciones',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        setEnvioHijoReasignar(envio);
+        setSucursalDestinoHijo(envio.sucursal_entrega || '');
+        setOpenDialogReasignarHijo(true);
+    };
+
+    const handleCerrarDialogReasignarHijo = () => {
+        setOpenDialogReasignarHijo(false);
+        setEnvioHijoReasignar(null);
+        setSucursalDestinoHijo('');
+        setGuardandoDestinoHijo(false);
+    };
+
+    const handleGuardarDestinoHijo = async () => {
+        if (!envioHijoReasignar || !sucursalDestinoHijo) {
+            return;
+        }
+        if (sucursalDestinoHijo === envioHijoReasignar.sucursal_entrega) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin cambios',
+                text: 'Seleccione una sucursal distinta al destino actual',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        if (!objectIsEmpty(auth)) {
+            navigate('../../login');
+            return;
+        }
+        setGuardandoDestinoHijo(true);
+        try {
+            const url = `${apiUrl.url}embarques/reasignar_destino_envio_hijo/${envioHijoReasignar.id}/`;
+            await axios.put(
+                url,
+                { sucursal_entrega: sucursalDestinoHijo },
+                { headers: { Authorization: `Bearer ${auth.access}` } }
+            );
+            handleCerrarDialogReasignarHijo();
+            getEnviosHijosReasignados();
+            Swal.fire({
+                icon: 'success',
+                title: 'Destino actualizado',
+                text: 'El envío derivado fue reasignado a la nueva sucursal',
+                didOpen: configureSwalZIndex,
+            });
+        } catch (error) {
+            console.error('Error al reasignar destino del envío hijo:', error);
+            if (error.response?.status === 401) {
+                navigate('../../login');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response?.data?.message || 'No se pudo actualizar el destino',
+                    didOpen: configureSwalZIndex,
+                });
+            }
+        } finally {
+            setGuardandoDestinoHijo(false);
+        }
+    };
+
+    const handleCancelarReasignacionHijo = (envio) => {
+        if (envio.tiene_asignaciones) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Envío asignado',
+                text: 'No se puede cancelar porque el envío ya tiene asignaciones',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        Swal.fire({
+            title: 'Cancelar reasignación',
+            html: `¿Regresar las partidas al envío origen y eliminar el envío derivado <strong>${envio.documento || ''}</strong>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'No',
+            didOpen: configureSwalZIndex,
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            if (!objectIsEmpty(auth)) {
+                navigate('../../login');
+                return;
+            }
+            setLoadingHijosReasignados(true);
+            try {
+                const url = `${apiUrl.url}embarques/cancelar_envio_hijo_reasignacion/${envio.id}/`;
+                await axios.delete(url, {
+                    headers: { Authorization: `Bearer ${auth.access}` },
+                });
+                setEnviosHijosReasignadosSeleccionados((prev) => {
+                    const next = { ...prev };
+                    delete next[envio.id];
+                    return next;
+                });
+                getData();
+                getEnviosHijosReasignados();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reasignación cancelada',
+                    text: 'Las partidas regresaron al envío origen y ya pueden embarcarse aquí',
+                    didOpen: configureSwalZIndex,
+                });
+            } catch (error) {
+                console.error('Error al cancelar reasignación:', error);
+                if (error.response?.status === 401) {
+                    navigate('../../login');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.response?.data?.message || 'No se pudo cancelar la reasignación',
+                        didOpen: configureSwalZIndex,
+                    });
+                }
+            } finally {
+                setLoadingHijosReasignados(false);
+            }
+        });
+    };
 
     const cantidadSeleccionados = Object.keys(enviosSeleccionados).length;
     const cantidadReasignadosSeleccionados = Object.keys(enviosReasignadosSeleccionados).length;
@@ -431,10 +708,92 @@ const GeolocalizacionEnvios = () => {
     const handleRefresh = () => {
         getData();
         getEnviosReasignados();
+        getEnviosHijosReasignados();
         getEmbarquesPendientes();
         getEmbarquesTransito();
         getEmbarquesRegresos();
     }
+
+    const aplicarCoordenadasEnvio = (envioId, latitud, longitud) => {
+        const patchLista = (lista) => (lista || []).map((envio) => (
+            envio.id === envioId
+                ? {
+                    ...envio,
+                    instruccion: {
+                        ...(envio.instruccion || {}),
+                        direccion_latitud: latitud,
+                        direccion_longitud: longitud,
+                    },
+                }
+                : envio
+        ));
+        setEnvios((prev) => patchLista(prev));
+        setEnviosReasignados((prev) => patchLista(prev));
+        setEnviosHijosReasignados((prev) => patchLista(prev));
+        setEnvioSeleccionado((prev) => (
+            prev?.id === envioId
+                ? {
+                    ...prev,
+                    instruccion: {
+                        ...(prev.instruccion || {}),
+                        direccion_latitud: latitud,
+                        direccion_longitud: longitud,
+                    },
+                }
+                : prev
+        ));
+    };
+
+    const handleGeocodificarEnvio = async (envio) => {
+        if (!envio?.id || geocodificandoEnvioId) return;
+        setGeocodificandoEnvioId(envio.id);
+        try {
+            const url = `${apiUrl.url}embarques/geocodificar_instruccion_envio/${envio.id}/`;
+            const resp = await axios.post(url, {}, {
+                headers: { Authorization: `Bearer ${auth.access}` },
+            });
+            const { latitud, longitud, cliente_actualizado, rfc, clientes_omitidos } = resp.data || {};
+            if (!latitud || !longitud) {
+                throw new Error('No se obtuvieron coordenadas');
+            }
+            aplicarCoordenadasEnvio(envio.id, latitud, longitud);
+            setEnvioSeleccionado((prev) => {
+                const base = prev?.id === envio.id ? prev : envio;
+                return {
+                    ...base,
+                    instruccion: {
+                        ...(base.instruccion || {}),
+                        direccion_latitud: latitud,
+                        direccion_longitud: longitud,
+                    },
+                };
+            });
+            let mensajeCliente = 'Se actualizó la instrucción. El envío no tiene RFC de destinatario.';
+            if (cliente_actualizado) {
+                mensajeCliente = 'Se actualizaron las coordenadas de la instrucción y del cliente.';
+            } else if (clientes_omitidos) {
+                mensajeCliente = 'Se actualizó la instrucción. La calle o el código postal no coinciden con el cliente, por eso se respetó su dirección.';
+            } else if (rfc) {
+                mensajeCliente = `Se actualizó la instrucción. No se encontró cliente con RFC ${rfc}.`;
+            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Geolocalización encontrada',
+                text: mensajeCliente,
+                didOpen: configureSwalZIndex,
+            });
+        } catch (error) {
+            const mensaje = error?.response?.data?.message || error.message || 'No se pudo geolocalizar la dirección';
+            Swal.fire({
+                icon: 'error',
+                title: 'Sin geolocalización',
+                text: mensaje,
+                didOpen: configureSwalZIndex,
+            });
+        } finally {
+            setGeocodificandoEnvioId(null);
+        }
+    };
 
     const irPanelDerecho = (siguiente) => {
         setPanelDerecho(siguiente);
@@ -588,7 +947,49 @@ const GeolocalizacionEnvios = () => {
 
     const esEnvioCod = (envio) => (envio?.tipo_documento || '').toUpperCase() === 'COD';
 
-    const handleAbrirDialogSucursalEntrega = (envio) => {
+    const esEnvioReasignadoCompleto = (envio) => Boolean(
+        envio?.sucursal_entrega &&
+        envio.sucursal_entrega !== envio.sucursal
+    );
+
+    const esEnvioDerivadoReasignacion = (envio) => Boolean(envio?.envio_origen);
+
+    const cargarPartidasReasignacion = async (envioId) => {
+        setLoadingPartidasReasignacion(true);
+        try {
+            const url = `${apiUrl.url}embarques/partidas_reasignacion/${envioId}/`;
+            const resp = await axios.get(url, {
+                headers: { Authorization: `Bearer ${auth.access}` },
+            });
+            const partidas = resp.data || [];
+            setPartidasReasignacion(partidas);
+            const seleccionInicial = {};
+            partidas.forEach((partida) => {
+                if (partida.elegible) {
+                    seleccionInicial[partida.id] = true;
+                }
+            });
+            setPartidasReasignacionSeleccionadas(seleccionInicial);
+        } catch (error) {
+            console.error('Error al cargar partidas para reasignación:', error);
+            setPartidasReasignacion([]);
+            setPartidasReasignacionSeleccionadas({});
+            if (error.response?.status === 401) {
+                navigate('../../login');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response?.data?.message || 'No se pudieron cargar las partidas',
+                    didOpen: configureSwalZIndex,
+                });
+            }
+        } finally {
+            setLoadingPartidasReasignacion(false);
+        }
+    };
+
+    const handleAbrirDialogSucursalEntrega = async (envio) => {
         if (esEnvioCod(envio)) {
             Swal.fire({
                 icon: 'warning',
@@ -598,33 +999,72 @@ const GeolocalizacionEnvios = () => {
             });
             return;
         }
-        const yaReasignado = Boolean(
-            envio.sucursal_entrega &&
-            envio.sucursal_entrega !== envio.sucursal
-        );
-        if (yaReasignado) {
+        if (esEnvioDerivadoReasignacion(envio)) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Envío reasignado',
-                text: 'Este envío ya está reasignado y no se puede reasignar nuevamente',
+                title: 'Envío derivado',
+                text: 'No se puede reasignar un envío generado por reasignación',
                 didOpen: configureSwalZIndex,
             });
             return;
         }
+        if (esEnvioReasignadoCompleto(envio)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Envío reasignado',
+                text: 'Este envío ya está reasignado completamente',
+                didOpen: configureSwalZIndex,
+            });
+            return;
+        }
+        if (!objectIsEmpty(auth)) {
+            navigate('../../login');
+            return;
+        }
         setEnvioSucursalEntrega(envio);
-        setSucursalEntregaSeleccionada(envio.sucursal_entrega || '');
+        setSucursalEntregaSeleccionada('');
+        setPartidasReasignacion([]);
+        setPartidasReasignacionSeleccionadas({});
         setOpenDialogSucursalEntrega(true);
+        await cargarPartidasReasignacion(envio.id);
     };
 
     const handleCerrarDialogSucursalEntrega = () => {
         setOpenDialogSucursalEntrega(false);
         setEnvioSucursalEntrega(null);
         setSucursalEntregaSeleccionada('');
+        setPartidasReasignacion([]);
+        setPartidasReasignacionSeleccionadas({});
         setGuardandoSucursalEntrega(false);
+        setLoadingPartidasReasignacion(false);
     };
+
+    const handleTogglePartidaReasignacion = (partidaId) => {
+        setPartidasReasignacionSeleccionadas((prev) => ({
+            ...prev,
+            [partidaId]: !prev[partidaId],
+        }));
+    };
+
+    const cantidadPartidasReasignacionSeleccionadas = useMemo(
+        () => Object.values(partidasReasignacionSeleccionadas).filter(Boolean).length,
+        [partidasReasignacionSeleccionadas]
+    );
 
     const handleGuardarSucursalEntrega = async () => {
         if (!envioSucursalEntrega || !sucursalEntregaSeleccionada) {
+            return;
+        }
+        const detalleIds = Object.entries(partidasReasignacionSeleccionadas)
+            .filter(([, selected]) => selected)
+            .map(([id]) => Number(id));
+        if (detalleIds.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin partidas',
+                text: 'Seleccione al menos una partida para reasignar',
+                didOpen: configureSwalZIndex,
+            });
             return;
         }
         if (!objectIsEmpty(auth)) {
@@ -639,27 +1079,18 @@ const GeolocalizacionEnvios = () => {
                 {
                     envio_id: envioSucursalEntrega.id,
                     sucursal_entrega: sucursalEntregaSeleccionada,
+                    detalle_ids: detalleIds,
                 },
                 { headers: { Authorization: `Bearer ${auth.access}` } }
             );
-            setEnvios((prev) =>
-                prev.map((envio) =>
-                    envio.id === envioSucursalEntrega.id
-                        ? { ...envio, sucursal_entrega: sucursalEntregaSeleccionada }
-                        : envio
-                )
-            );
-            if (envioSeleccionado?.id === envioSucursalEntrega.id) {
-                setEnvioSeleccionado((prev) =>
-                    prev ? { ...prev, sucursal_entrega: sucursalEntregaSeleccionada } : prev
-                );
-            }
             handleCerrarDialogSucursalEntrega();
+            getData();
             getEnviosReasignados();
+            getEnviosHijosReasignados();
             Swal.fire({
                 icon: 'success',
-                title: 'Sucursal actualizada',
-                text: 'Se asignó la sucursal de entrega',
+                title: 'Reasignación registrada',
+                text: 'Se creó el envío derivado con las partidas seleccionadas',
                 didOpen: configureSwalZIndex,
             });
         } catch (error) {
@@ -670,7 +1101,7 @@ const GeolocalizacionEnvios = () => {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.response?.data?.message || 'No se pudo actualizar la sucursal de entrega',
+                    text: error.response?.data?.message || 'No se pudo registrar la reasignación',
                     didOpen: configureSwalZIndex,
                 });
             }
@@ -739,7 +1170,9 @@ const GeolocalizacionEnvios = () => {
         const seleccion =
             origen === PANEL_ENVIOS_REASIGNADOS
                 ? enviosReasignadosSeleccionados
-                : enviosSeleccionados;
+                : origen === PANEL_ENVIOS_HIJOS_REASIGNADOS
+                    ? enviosHijosReasignadosSeleccionados
+                    : enviosSeleccionados;
         if (Object.keys(seleccion).length === 0) {
             return;
         }
@@ -752,7 +1185,9 @@ const GeolocalizacionEnvios = () => {
         const seleccion =
             origenAsignacionTotal === PANEL_ENVIOS_REASIGNADOS
                 ? enviosReasignadosSeleccionados
-                : enviosSeleccionados;
+                : origenAsignacionTotal === PANEL_ENVIOS_HIJOS_REASIGNADOS
+                    ? enviosHijosReasignadosSeleccionados
+                    : enviosSeleccionados;
         const enviosIds = Object.keys(seleccion);
         Swal.fire({
             title: 'Asignación total',
@@ -778,6 +1213,8 @@ const GeolocalizacionEnvios = () => {
                     );
                     if (origenAsignacionTotal === PANEL_ENVIOS_REASIGNADOS) {
                         setEnviosReasignadosSeleccionados({});
+                    } else if (origenAsignacionTotal === PANEL_ENVIOS_HIJOS_REASIGNADOS) {
+                        setEnviosHijosReasignadosSeleccionados({});
                     } else {
                         setEnviosSeleccionados({});
                     }
@@ -1027,20 +1464,25 @@ const GeolocalizacionEnvios = () => {
         onToggleSeleccionado,
         permitirSeleccionMapa = true,
         mostrarOrigen = false,
+        variante = 'default',
     }) => (
         <List sx={{ p: 0 }}>
             {lista.map((envio, index) => {
+                const esHijoSalida = variante === 'hijos_salida';
                 const isSelected = permitirSeleccionMapa && envioSeleccionado?.id === envio.id;
-                const isChecked = Boolean(seleccionados[envio.id]);
-                const tieneCoordenadas = envio.instruccion?.direccion_latitud && envio.instruccion?.direccion_longitud;
+                const isChecked = Boolean(seleccionados?.[envio.id]);
+                const tieneCoordenadas = instruccionTieneCoordenadas(envio.instruccion);
                 const direccion = formatDireccionEnvio(envio.instruccion);
                 const fechaEnvio = formatFechaEnvio(envio.fecha_documento);
                 const sucursalQueEntrega = envio.sucursal_entrega || envio.sucursal;
-                const esReasignado = Boolean(
-                    envio.sucursal_entrega &&
-                    envio.sucursal_entrega !== envio.sucursal
-                );
+                const esReasignado = esEnvioReasignadoCompleto(envio);
+                const esDerivado = esEnvioDerivadoReasignacion(envio);
                 const esCod = esEnvioCod(envio);
+                const hijoConAsignaciones = esHijoSalida && Boolean(envio.tiene_asignaciones);
+                const puedeGestionarHijo = esHijoSalida && !hijoConAsignaciones;
+                const puedeReasignar = !mostrarOrigen && !esHijoSalida && !esReasignado && !esDerivado && !esCod;
+                const mostrarCheckbox = esHijoSalida ? puedeGestionarHijo : true;
+                const mostrarAccionesAsignacion = !esHijoSalida || puedeGestionarHijo;
 
                 return (
                     <React.Fragment key={envio.id || index}>
@@ -1064,15 +1506,19 @@ const GeolocalizacionEnvios = () => {
                                 opacity: permitirSeleccionMapa ? (tieneCoordenadas ? 1 : 0.6) : 1,
                             }}
                         >
-                            <Checkbox
-                                size="small"
-                                checked={isChecked}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={() => onToggleSeleccionado(envio.id)}
-                                sx={{ mt: 0.25, p: 0.5 }}
-                            />
+                            {mostrarCheckbox && (
+                                <Checkbox
+                                    size="small"
+                                    checked={isChecked}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={() => onToggleSeleccionado(envio.id)}
+                                    sx={{ mt: 0.25, p: 0.5 }}
+                                />
+                            )}
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                                 <ListItemText
+                                    primaryTypographyProps={{ component: 'div' }}
+                                    secondaryTypographyProps={{ component: 'div' }}
                                     primary={
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
                                             <Typography variant="subtitle2" fontWeight="bold">
@@ -1091,6 +1537,26 @@ const GeolocalizacionEnvios = () => {
                                                     {fechaEnvio}
                                                 </Typography>
                                             )}
+                                            {!tieneCoordenadas && (
+                                                <Tooltip title="Sin latitud y longitud. Clic para buscar geolocalización">
+                                                    <Chip
+                                                        size="small"
+                                                        icon={geocodificandoEnvioId === envio.id ? undefined : <LocationOffIcon sx={{ fontSize: '14px !important' }} />}
+                                                        label={geocodificandoEnvioId === envio.id ? 'Buscando...' : 'Sin GPS'}
+                                                        color="warning"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleGeocodificarEnvio(envio);
+                                                        }}
+                                                        sx={{
+                                                            height: 22,
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 700,
+                                                            cursor: geocodificandoEnvioId === envio.id ? 'wait' : 'pointer',
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            )}
                                         </Box>
                                     }
                                     secondary={
@@ -1106,7 +1572,34 @@ const GeolocalizacionEnvios = () => {
                                                 {direccion}
                                             </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.75, flexWrap: 'wrap' }}>
-                                                {mostrarOrigen ? (
+                                                {esHijoSalida ? (
+                                                    <>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            Destino: {sucursalQueEntrega || 'Sin sucursal'}
+                                                        </Typography>
+                                                        <Chip
+                                                            size="small"
+                                                            label="Envío derivado"
+                                                            color="info"
+                                                            variant="outlined"
+                                                            sx={{ height: 20, fontSize: '0.65rem' }}
+                                                        />
+                                                        {envio.envio_origen_documento && (
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                Doc. origen: {envio.envio_origen_documento}
+                                                            </Typography>
+                                                        )}
+                                                        {hijoConAsignaciones && (
+                                                            <Chip
+                                                                size="small"
+                                                                label="Asignado"
+                                                                color="success"
+                                                                variant="outlined"
+                                                                sx={{ height: 20, fontSize: '0.65rem' }}
+                                                            />
+                                                        )}
+                                                    </>
+                                                ) : mostrarOrigen ? (
                                                     <Typography variant="caption" color="text.secondary">
                                                         Origen: {envio.sucursal || 'N/A'}
                                                     </Typography>
@@ -1115,14 +1608,19 @@ const GeolocalizacionEnvios = () => {
                                                         Entrega: {sucursalQueEntrega || 'Sin sucursal'}
                                                     </Typography>
                                                 )}
-                                                {esReasignado && (
+                                                {!esHijoSalida && esReasignado && (
                                                     <Chip
                                                         size="small"
-                                                        label="Reasignado"
+                                                        label={esDerivado ? 'Reasignado' : 'Reasignado'}
                                                         color="warning"
                                                         variant="outlined"
                                                         sx={{ height: 20, fontSize: '0.65rem' }}
                                                     />
+                                                )}
+                                                {esDerivado && envio.envio_origen && !esHijoSalida && (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Origen envío #{envio.envio_origen}
+                                                    </Typography>
                                                 )}
                                             </Box>
                                         </>
@@ -1142,8 +1640,44 @@ const GeolocalizacionEnvios = () => {
                                         <InfoOutlinedIcon fontSize={panelIconFontSize} />
                                     </IconButton>
                                 </Tooltip>
-                                {!mostrarOrigen && !esReasignado && !esCod && (
-                                    <Tooltip title="Asignar sucursal entrega">
+                                {puedeGestionarHijo && (
+                                    <Tooltip title="Cambiar sucursal destino">
+                                        <IconButton
+                                            size="medium"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAbrirDialogReasignarHijo(envio);
+                                            }}
+                                            sx={{
+                                                ...panelIconButtonSx,
+                                                color: 'text.secondary',
+                                                '&:hover': { backgroundColor: 'action.hover' },
+                                            }}
+                                        >
+                                            <SwapHorizIcon fontSize={panelIconFontSize} />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                                {puedeGestionarHijo && (
+                                    <Tooltip title="Cancelar reasignación (regresar al envío origen)">
+                                        <IconButton
+                                            size="medium"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCancelarReasignacionHijo(envio);
+                                            }}
+                                            sx={{
+                                                ...panelIconButtonSx,
+                                                color: 'warning.main',
+                                                '&:hover': { backgroundColor: 'action.hover' },
+                                            }}
+                                        >
+                                            <UndoIcon fontSize={panelIconFontSize} />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                                {mostrarAccionesAsignacion && puedeReasignar && (
+                                    <Tooltip title="Reasignar partidas">
                                         <IconButton
                                             size="medium"
                                             onClick={(e) => {
@@ -1160,7 +1694,8 @@ const GeolocalizacionEnvios = () => {
                                         </IconButton>
                                     </Tooltip>
                                 )}
-                                <Tooltip title="Asignar envío">
+                                {mostrarAccionesAsignacion && (
+                                    <Tooltip title="Asignar envío">
                                     <IconButton
                                         size="medium"
                                         onClick={(e) => {
@@ -1171,7 +1706,8 @@ const GeolocalizacionEnvios = () => {
                                     >
                                         <LocalShippingIcon fontSize={panelIconFontSize} />
                                     </IconButton>
-                                </Tooltip>
+                                    </Tooltip>
+                                )}
                             </Box>
                         </ListItem>
                         {index < lista.length - 1 && <Divider />}
@@ -1224,7 +1760,7 @@ const GeolocalizacionEnvios = () => {
                     </Box>
                 </Grid>
                 <Grid item xs={2} md={2}>
-                    <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
                         {enviosReasignados.length > 0 && (
                             <Tooltip title="Ver envíos reasignados">
                                 <Badge
@@ -1239,6 +1775,25 @@ const GeolocalizacionEnvios = () => {
                                         variant="outlined"
                                         icon={<SwapHorizIcon />}
                                         onClick={() => irPanelIzquierdo(PANEL_ENVIOS_REASIGNADOS)}
+                                        sx={{ cursor: 'pointer' }}
+                                    />
+                                </Badge>
+                            </Tooltip>
+                        )}
+                        {enviosHijosReasignados.length > 0 && (
+                            <Tooltip title="Ver envíos enviados a otra sucursal">
+                                <Badge
+                                    badgeContent={enviosHijosReasignados.length}
+                                    color="info"
+                                    max={99}
+                                >
+                                    <Chip
+                                        size="small"
+                                        label="Enviados"
+                                        color="info"
+                                        variant="outlined"
+                                        icon={<CallSplitIcon />}
+                                        onClick={() => irPanelIzquierdo(PANEL_ENVIOS_HIJOS_REASIGNADOS)}
                                         sx={{ cursor: 'pointer' }}
                                     />
                                 </Badge>
@@ -1268,17 +1823,9 @@ const GeolocalizacionEnvios = () => {
         </Paper>
         <Box sx={{ width: '100%', flex: 1, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'row', gap: PANEL_GAP, overflow: 'hidden' }}>
                 <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            width: '200%',
-                            height: '100%',
-                            transform: `translateX(-${(panelIzquierdo * 100) / 2}%)`,
-                            transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
-                            willChange: 'transform',
-                        }}
-                    >
-                        <Box sx={{ width: '50%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                    <Box sx={panelViewportSx}>
+                        <Box sx={getPanelSlotSx(PANEL_ENVIOS, panelIzquierdo)} aria-hidden={panelIzquierdo !== PANEL_ENVIOS}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
                             <Paper elevation={0} sx={panelPaperSx}>
                                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1374,7 +1921,9 @@ const GeolocalizacionEnvios = () => {
                                 </Box>
                             </Paper>
                         </Box>
-                        <Box sx={{ width: '50%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                        </Box>
+                        <Box sx={getPanelSlotSx(PANEL_ENVIOS_REASIGNADOS, panelIzquierdo)} aria-hidden={panelIzquierdo !== PANEL_ENVIOS_REASIGNADOS}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
                             <Paper elevation={0} sx={panelPaperSx}>
                                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1469,6 +2018,105 @@ const GeolocalizacionEnvios = () => {
                                     )}
                                 </Box>
                             </Paper>
+                        </Box>
+                        </Box>
+                        <Box sx={getPanelSlotSx(PANEL_ENVIOS_HIJOS_REASIGNADOS, panelIzquierdo)} aria-hidden={panelIzquierdo !== PANEL_ENVIOS_HIJOS_REASIGNADOS}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
+                            <Paper elevation={0} sx={panelPaperSx}>
+                                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="h6" component="h2">
+                                            Enviados ({filtroEnviosHijosReasignados ? `${enviosHijosReasignadosFiltrados.length}/${enviosHijosReasignados.length}` : enviosHijosReasignados.length})
+                                        </Typography>
+                                        <PanelIzquierdoNav panelActivo={panelIzquierdo} onCambiarPanel={irPanelIzquierdo} />
+                                    </Box>
+                                    <TextField
+                                        size="small"
+                                        fullWidth
+                                        placeholder="Cliente"
+                                        value={filtroEnviosHijosReasignados}
+                                        onChange={(e) => setFiltroEnviosHijosReasignados(e.target.value)}
+                                        sx={{ mt: 1.5 }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon fontSize="small" color="action" />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: filtroEnviosHijosReasignados ? (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="medium"
+                                                        aria-label="Limpiar filtro"
+                                                        onClick={() => setFiltroEnviosHijosReasignados('')}
+                                                        edge="end"
+                                                        sx={panelIconButtonSx}
+                                                    >
+                                                        <ClearIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ) : null,
+                                        }}
+                                    />
+                                    {enviosHijosGestionablesFiltrados.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, ml: -1, mr: -0.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={todosHijosFiltradosSeleccionados}
+                                                    indeterminate={!todosHijosFiltradosSeleccionados && algunosHijosFiltradosSeleccionados}
+                                                    onChange={handleToggleTodosHijosFiltrados}
+                                                    disabled={enviosHijosGestionablesFiltrados.length === 0}
+                                                />
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Seleccionar sin asignar
+                                                </Typography>
+                                            </Box>
+                                            <Tooltip title="Asignar a embarque desde sucursal origen">
+                                                <span>
+                                                    <IconButton
+                                                        size="medium"
+                                                        color="primary"
+                                                        sx={panelIconButtonSx}
+                                                        onClick={() => handleAbrirAsignacionTotal(PANEL_ENVIOS_HIJOS_REASIGNADOS)}
+                                                        disabled={cantidadHijosReasignadosSeleccionados === 0}
+                                                    >
+                                                        <LocalShippingIcon fontSize={panelIconFontSize} />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </Box>
+                                    )}
+                                </Box>
+                                <Box sx={{ flex: 1, overflow: 'auto' }}>
+                                    {loadingHijosReasignados ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : enviosHijosReasignados.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos derivados enviados a otra sucursal
+                                            </Typography>
+                                        </Box>
+                                    ) : enviosHijosReasignadosFiltrados.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                No hay envíos que coincidan con el filtro
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        renderListaEnvios({
+                                            lista: enviosHijosReasignadosFiltrados,
+                                            seleccionados: enviosHijosReasignadosSeleccionados,
+                                            onToggleSeleccionado: handleToggleEnvioHijoReasignadoSeleccionado,
+                                            permitirSeleccionMapa: true,
+                                            variante: 'hijos_salida',
+                                        })
+                                    )}
+                                </Box>
+                            </Paper>
+                        </Box>
                         </Box>
                     </Box>
                 </Box>
@@ -1576,17 +2224,9 @@ const GeolocalizacionEnvios = () => {
                     </Paper>
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            width: '300%',
-                            height: '100%',
-                            transform: `translateX(-${(panelDerecho * 100) / 3}%)`,
-                            transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
-                            willChange: 'transform',
-                        }}
-                    >
-                        <Box sx={{ width: `${100 / 3}%`, height: '100%', flexShrink: 0, px: 0, boxSizing: 'border-box' }}>
+                    <Box sx={panelViewportSx}>
+                        <Box sx={getPanelSlotSx(PANEL_EMBARQUES, panelDerecho)} aria-hidden={panelDerecho !== PANEL_EMBARQUES}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
                         <Paper elevation={0} sx={panelPaperSx}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="h6" component="h2">
@@ -1717,8 +2357,10 @@ const GeolocalizacionEnvios = () => {
                             </Box>
                         </Paper>
                         </Box>
+                        </Box>
 
-                        <Box sx={{ width: `${100 / 3}%`, height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                        <Box sx={getPanelSlotSx(PANEL_TRANSITO, panelDerecho)} aria-hidden={panelDerecho !== PANEL_TRANSITO}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
                         <Paper elevation={0} sx={panelPaperSx}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="h6" component="h2">
@@ -1821,8 +2463,10 @@ const GeolocalizacionEnvios = () => {
                             </Box>
                         </Paper>
                         </Box>
+                        </Box>
 
-                        <Box sx={{ width: `${100 / 3}%`, height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+                        <Box sx={getPanelSlotSx(PANEL_REGRESOS, panelDerecho)} aria-hidden={panelDerecho !== PANEL_REGRESOS}>
+                        <Box sx={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
                         <Paper elevation={0} sx={panelPaperSx}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="h6" component="h2">
@@ -1893,6 +2537,7 @@ const GeolocalizacionEnvios = () => {
                             </Box>
                         </Paper>
                         </Box>
+                        </Box>
                     </Box>
                 </Box>
         </Box>
@@ -1929,24 +2574,26 @@ const GeolocalizacionEnvios = () => {
                     onClick={(e) => e.stopPropagation()}
                     sx={{
                         width: '100%',
-                        maxWidth: 360,
+                        maxWidth: 520,
+                        maxHeight: '85vh',
+                        overflow: 'auto',
                         p: 2.5,
                         borderRadius: 2,
                     }}
                 >
                     <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        Sucursal de entrega
+                        Reasignar partidas
                     </Typography>
                     {envioSucursalEntrega?.documento && (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             Documento: {envioSucursalEntrega.documento}
                         </Typography>
                     )}
-                    <FormControl fullWidth size="small">
-                        <InputLabel id="sucursal-entrega-label">Sucursal</InputLabel>
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <InputLabel id="sucursal-entrega-label">Sucursal destino</InputLabel>
                         <Select
                             labelId="sucursal-entrega-label"
-                            label="Sucursal"
+                            label="Sucursal destino"
                             value={sucursalEntregaSeleccionada}
                             onChange={(e) => setSucursalEntregaSeleccionada(e.target.value)}
                             MenuProps={{
@@ -1955,7 +2602,9 @@ const GeolocalizacionEnvios = () => {
                                 style: { zIndex: 14000 },
                             }}
                         >
-                            {(sucursales || []).map((suc) => (
+                            {(sucursales || [])
+                                .filter((suc) => suc.nombre !== envioSucursalEntrega?.sucursal)
+                                .map((suc) => (
                                 <MenuItem key={suc.nombre} value={suc.nombre}>
                                     {suc.nombre}
                                 </MenuItem>
@@ -1963,9 +2612,52 @@ const GeolocalizacionEnvios = () => {
                         </Select>
                     </FormControl>
                     {envioSucursalEntrega?.sucursal && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
                             Sucursal origen: {envioSucursalEntrega.sucursal}
                         </Typography>
+                    )}
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Partidas a reasignar
+                    </Typography>
+                    {loadingPartidasReasignacion ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                            <CircularProgress size={28} />
+                        </Box>
+                    ) : partidasReasignacion.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            No hay partidas disponibles para reasignar
+                        </Typography>
+                    ) : (
+                        <List dense disablePadding sx={{ mb: 2, maxHeight: 240, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                            {partidasReasignacion.map((partida) => (
+                                <ListItem
+                                    key={partida.id}
+                                    dense
+                                    sx={{
+                                        py: 0.5,
+                                        opacity: partida.elegible ? 1 : 0.55,
+                                    }}
+                                >
+                                    <Checkbox
+                                        size="small"
+                                        checked={Boolean(partidasReasignacionSeleccionadas[partida.id])}
+                                        disabled={!partida.elegible}
+                                        onChange={() => handleTogglePartidaReasignacion(partida.id)}
+                                        sx={{ p: 0.5, mr: 1 }}
+                                    />
+                                    <ListItemText
+                                        primary={`${partida.clave} — ${partida.me_descripcion}`}
+                                        secondary={
+                                            partida.elegible
+                                                ? `Cantidad: ${partida.me_cantidad}`
+                                                : partida.sucursal_reasignacion
+                                                    ? `Reasignada a ${partida.sucursal_reasignacion}`
+                                                    : partida.motivo_no_elegible || 'No disponible'
+                                        }
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
                     )}
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2.5 }}>
                         <Button onClick={handleCerrarDialogSucursalEntrega} disabled={guardandoSucursalEntrega}>
@@ -1974,15 +2666,101 @@ const GeolocalizacionEnvios = () => {
                         <Button
                             variant="contained"
                             onClick={handleGuardarSucursalEntrega}
-                            disabled={!sucursalEntregaSeleccionada || guardandoSucursalEntrega}
+                            disabled={
+                                !sucursalEntregaSeleccionada ||
+                                guardandoSucursalEntrega ||
+                                loadingPartidasReasignacion ||
+                                cantidadPartidasReasignacionSeleccionadas === 0
+                            }
                         >
-                            {guardandoSucursalEntrega ? 'Guardando...' : 'Guardar'}
+                            {guardandoSucursalEntrega ? 'Guardando...' : 'Reasignar'}
                         </Button>
                     </Box>
                 </Paper>
             </Box>
         )}
     </Box>
+        {openDialogReasignarHijo && (
+            <Box
+                sx={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: overlayZIndex,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                    p: 2,
+                }}
+                onClick={handleCerrarDialogReasignarHijo}
+            >
+                <Paper
+                    elevation={8}
+                    onClick={(e) => e.stopPropagation()}
+                    sx={{
+                        width: '100%',
+                        maxWidth: 480,
+                        p: 2.5,
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography variant="h6" sx={{ mb: 0.5 }}>
+                        Cambiar sucursal destino
+                    </Typography>
+                    {envioHijoReasignar?.documento && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Envío derivado: {envioHijoReasignar.documento}
+                            {envioHijoReasignar.envio_origen_documento
+                                ? ` · Origen: ${envioHijoReasignar.envio_origen_documento}`
+                                : ''}
+                        </Typography>
+                    )}
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <InputLabel id="sucursal-destino-hijo-label">Nueva sucursal destino</InputLabel>
+                        <Select
+                            labelId="sucursal-destino-hijo-label"
+                            label="Nueva sucursal destino"
+                            value={sucursalDestinoHijo}
+                            onChange={(e) => setSucursalDestinoHijo(e.target.value)}
+                            MenuProps={{
+                                disablePortal: false,
+                                sx: { zIndex: overlayZIndex + 1 },
+                                style: { zIndex: overlayZIndex + 1 },
+                            }}
+                        >
+                            {(sucursales || [])
+                                .filter((suc) => suc.nombre !== envioHijoReasignar?.sucursal)
+                                .map((suc) => (
+                                    <MenuItem key={suc.nombre} value={suc.nombre}>
+                                        {suc.nombre}
+                                    </MenuItem>
+                                ))}
+                        </Select>
+                    </FormControl>
+                    {envioHijoReasignar?.sucursal_entrega && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                            Destino actual: {envioHijoReasignar.sucursal_entrega}
+                        </Typography>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Button onClick={handleCerrarDialogReasignarHijo} disabled={guardandoDestinoHijo}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleGuardarDestinoHijo}
+                            disabled={
+                                !sucursalDestinoHijo ||
+                                guardandoDestinoHijo ||
+                                sucursalDestinoHijo === envioHijoReasignar?.sucursal_entrega
+                            }
+                        >
+                            {guardandoDestinoHijo ? 'Guardando...' : 'Actualizar destino'}
+                        </Button>
+                    </Box>
+                </Paper>
+            </Box>
+        )}
         <Dialog 
             open={openDialogAsignacion} 
             onClose={handleCerrarDialogAsignacion}
