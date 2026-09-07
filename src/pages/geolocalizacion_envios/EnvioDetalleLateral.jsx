@@ -10,6 +10,7 @@ import {
     ListItemText,
     Slide,
     Backdrop,
+    Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -51,6 +52,12 @@ const InfoRow = ({ label, value }) => {
         </Box>
     );
 };
+
+const esPartidaReasignada = (detalle) => Boolean(
+    detalle?.reasignada
+    || detalle?.activo === false
+    || (!detalle?.activo && detalle?.sucursal_reasignacion)
+);
 
 const EnvioDetalleLateral = ({
     open,
@@ -193,7 +200,9 @@ const EnvioDetalleLateral = ({
                                         </Typography>
                                     ) : (
                                         <List dense disablePadding>
-                                            {detalles.map((detalle, index) => (
+                                            {detalles.map((detalle, index) => {
+                                                const reasignada = esPartidaReasignada(detalle);
+                                                return (
                                                 <React.Fragment key={detalle.id || index}>
                                                     <ListItem
                                                         alignItems="flex-start"
@@ -202,27 +211,48 @@ const EnvioDetalleLateral = ({
                                                             py: 1,
                                                             flexDirection: 'column',
                                                             alignItems: 'stretch',
+                                                            opacity: reasignada ? 0.72 : 1,
                                                         }}
                                                     >
                                                         <ListItemText
                                                             primary={
-                                                                <Typography variant="body2" fontWeight="medium">
-                                                                    {detalle.clave || 'Sin clave'} — {detalle.me_descripcion || detalle.descripcion || 'Sin descripción'}
-                                                                </Typography>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                                    <Typography variant="body2" fontWeight="medium">
+                                                                        {detalle.clave || 'Sin clave'} — {detalle.me_descripcion || detalle.descripcion || 'Sin descripción'}
+                                                                    </Typography>
+                                                                    {reasignada && (
+                                                                        <Chip
+                                                                            size="small"
+                                                                            label="Reasignada"
+                                                                            color="warning"
+                                                                            variant="outlined"
+                                                                            sx={{ height: 20, fontSize: '0.65rem' }}
+                                                                        />
+                                                                    )}
+                                                                </Box>
                                                             }
                                                             secondary={
-                                                                <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                                                                    <Typography variant="caption" color="text.secondary">
-                                                                        Cant: {detalle.me_cantidad ?? detalle.cantidad ?? '—'}
-                                                                    </Typography>
-                                                                    {detalle.saldo != null && (
+                                                                <Box sx={{ mt: 0.5 }}>
+                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                                                                         <Typography variant="caption" color="text.secondary">
-                                                                            Saldo: {detalle.saldo}
+                                                                            Cant: {detalle.me_cantidad ?? detalle.cantidad ?? '—'}
                                                                         </Typography>
-                                                                    )}
-                                                                    {detalle.me_kilos != null && (
-                                                                        <Typography variant="caption" color="text.secondary">
-                                                                            Kg: {detalle.me_kilos}
+                                                                        {!reasignada && detalle.saldo != null && (
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                Saldo: {detalle.saldo}
+                                                                            </Typography>
+                                                                        )}
+                                                                        {detalle.me_kilos != null && (
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                Kg: {detalle.me_kilos}
+                                                                            </Typography>
+                                                                        )}
+                                                                    </Box>
+                                                                    {reasignada && (
+                                                                        <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>
+                                                                            {detalle.sucursal_reasignacion
+                                                                                ? `Reasignada a: ${detalle.sucursal_reasignacion}`
+                                                                                : 'Reasignada'}
                                                                         </Typography>
                                                                     )}
                                                                 </Box>
@@ -231,7 +261,8 @@ const EnvioDetalleLateral = ({
                                                     </ListItem>
                                                     {index < detalles.length - 1 && <Divider />}
                                                 </React.Fragment>
-                                            ))}
+                                                );
+                                            })}
                                         </List>
                                     )}
                                 </Box>
