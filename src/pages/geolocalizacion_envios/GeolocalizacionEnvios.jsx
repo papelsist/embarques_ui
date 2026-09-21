@@ -21,6 +21,7 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import UndoIcon from '@mui/icons-material/Undo';
@@ -39,6 +40,7 @@ import EnvioDetalleLateral from './EnvioDetalleLateral';
 import EmbarqueTransitoDetalleLateral from './EmbarqueTransitoDetalleLateral';
 import TransportesEnviosPendientes from '../embarques/envios_pendientes/components/TransportesEnviosPendientes';
 import BuscadorEnvioGeolocalizacionPanel from './BuscadorEnvioGeolocalizacionPanel';
+import BuscadorEnviosClienteGeolocalizacionPanel from './BuscadorEnviosClienteGeolocalizacionPanel';
 import MantenimientoEntrega from '../../components/mantenimiento_entrega/MantenimientoEntrega';
 import SeguimientoEnvio from '../embarques/components/SeguimientoEnvio';
 import { changeDateFormat, formatDate } from '../../utils/dateUtils';
@@ -258,6 +260,7 @@ const GeolocalizacionEnvios = () => {
     const [partidasReasignacionSeleccionadas, setPartidasReasignacionSeleccionadas] = useState({});
     const [loadingPartidasReasignacion, setLoadingPartidasReasignacion] = useState(false);
     const [openDialogBuscador, setOpenDialogBuscador] = useState(false);
+    const [openDialogBuscadorCliente, setOpenDialogBuscadorCliente] = useState(false);
     const [openDialogMantenimientoEntrega, setOpenDialogMantenimientoEntrega] = useState(false);
     const [openDialogSeguimientoEnvio, setOpenDialogSeguimientoEnvio] = useState(false);
     const [buscadorAsignacionSeleccion, setBuscadorAsignacionSeleccion] = useState({});
@@ -1149,12 +1152,14 @@ const GeolocalizacionEnvios = () => {
 
     const handleBuscadorAsignacionParcial = (seleccion) => {
         setOpenDialogBuscador(false);
+        setOpenDialogBuscadorCliente(false);
         setBuscadorAsignacionSeleccion(seleccion);
         setOpenDialogAsignacion(true);
     };
 
     const handleBuscadorAsignacionTotal = (seleccion) => {
         setOpenDialogBuscador(false);
+        setOpenDialogBuscadorCliente(false);
         setEnviosSeleccionados(seleccion);
         setOrigenAsignacionTotal(PANEL_ENVIOS);
         setOpenDialogAsignacionTotal(true);
@@ -2220,6 +2225,22 @@ const GeolocalizacionEnvios = () => {
                                     </Typography>
                                 </Box>
                             </Tooltip>
+                            <Tooltip title="Envíos pendientes por cliente">
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25 }}>
+                                    <IconButton
+                                        size="medium"
+                                        color="success"
+                                        sx={panelIconButtonSx}
+                                        onClick={() => setOpenDialogBuscadorCliente(true)}
+                                        aria-label="Envíos pendientes por cliente"
+                                    >
+                                        <PersonSearchIcon fontSize={panelIconFontSize} />
+                                    </IconButton>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                        Por cliente
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
                         </Box>
                     </Paper>
                 </Box>
@@ -2924,6 +2945,30 @@ const GeolocalizacionEnvios = () => {
             <BuscadorEnvioGeolocalizacionPanel
                 overlayZIndex={overlayZIndex}
                 onClose={() => setOpenDialogBuscador(false)}
+                onEnvioSeleccionadoMapa={handleBuscadorEnvioSeleccionadoMapa}
+                onAsignacionParcial={handleBuscadorAsignacionParcial}
+                onAsignacionTotal={handleBuscadorAsignacionTotal}
+            />
+        </Dialog>
+        <Dialog
+            open={openDialogBuscadorCliente}
+            onClose={() => setOpenDialogBuscadorCliente(false)}
+            disablePortal={false}
+            container={isFullscreen ? document.body : undefined}
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: 420,
+                    maxWidth: '95vw',
+                    m: 2,
+                    overflow: 'hidden',
+                },
+            }}
+            sx={dialogZIndexSx}
+        >
+            <BuscadorEnviosClienteGeolocalizacionPanel
+                overlayZIndex={overlayZIndex}
+                onClose={() => setOpenDialogBuscadorCliente(false)}
                 onEnvioSeleccionadoMapa={handleBuscadorEnvioSeleccionadoMapa}
                 onAsignacionParcial={handleBuscadorAsignacionParcial}
                 onAsignacionTotal={handleBuscadorAsignacionTotal}

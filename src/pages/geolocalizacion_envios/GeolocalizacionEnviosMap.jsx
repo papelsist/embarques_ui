@@ -1,11 +1,31 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import { Box, Typography, Button, Fab, Tooltip } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import { ContextEmbarques } from '../../context/ContextEmbarques';
 import { apiUrl } from '../../conf/axios_instance';
 import axios from 'axios';
 import { LogoIcon, TruckIcon,OfficeIcon } from '../../components/map/iconos_mapa';
+
+// Usa Mapbox solo si hay token en VITE_MAPBOX_TOKEN (el token embebido del repo está inválido).
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
+const MAP_TILE = MAPBOX_TOKEN
+    ? {
+          url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
+          attribution:
+              '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          tileSize: 512,
+          zoomOffset: -1,
+          maxZoom: 30,
+      }
+    : {
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 30,
+      };
 
 // Componente para controlar el centro del mapa
 
@@ -189,13 +209,16 @@ const GeolocalizacionEnviosMap = ({sucursal, envios, envioSeleccionado, onCentra
             <Box sx={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
                 <MapContainer
                     center={centroMapa}
-                    zoom={12}
+                    zoom={14}
                     scrollWheelZoom={true}
                     style={{ height: '100%', width: '100%' }}
                 >
                     <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution={MAP_TILE.attribution}
+                        url={MAP_TILE.url}
+                        {...(MAP_TILE.tileSize != null ? { tileSize: MAP_TILE.tileSize } : {})}
+                        {...(MAP_TILE.zoomOffset != null ? { zoomOffset: MAP_TILE.zoomOffset } : {})}
+                        maxZoom={MAP_TILE.maxZoom}
                     />
                     
                     {/* Marcador de la sucursal */}
@@ -233,7 +256,7 @@ const GeolocalizacionEnviosMap = ({sucursal, envios, envioSeleccionado, onCentra
                         return null;
                     })}
 
-                    <MapController center={centerObj} zoom={tieneEnvioSeleccionado ? 12 : 12} />
+                    <MapController center={centerObj} zoom={tieneEnvioSeleccionado ? 14 : 14} />
                     <MapResizeHandler isFullscreen={isFullscreen} />
                     <CentrarSucursalButton sucursal={sucursal} onCentrar={onCentrarSucursal} />
                 </MapContainer>
